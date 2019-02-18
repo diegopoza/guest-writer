@@ -4,7 +4,7 @@
 
 Guest Authors have to produce **original articles**. That is, authors have to write content with their own words and **no plagiarism will be accepted**. It is normal and totally ok to use and quote external references. Actually, this is desired, as it makes the article more reliable from an SEO perspective (articles will rank better when linking trustworthy sources of information).
 
-However, authors have to study, learn, and understand the technologies involved to a point where they can explain these topics with their own words. Authors also have to strive to produce explanations better than those found on the web. This is what it makes an article valuable.
+However, authors have to study, learn, and understand the technologies involved to a point where they can explain these topics with their own words. Authors also have to strive to produce explanations better than those found on the web. This is what makes an article valuable.
 
 ## Grammatical Person
 
@@ -53,7 +53,7 @@ For example, _GitHub_ has two uppercase letters. So, it's important not to write
 
 ## Formatting with Markdown
 
-This section will give you some tips on what are the preferred approach when structuring/formatting you article. After reading the instructions here, please, to he following cheatsheets. They can help you learn more about formatting content on Markdown files:
+This section will give you some tips on what are the preferred approach when structuring/formatting you article. After reading the instructions here, please, refer to the following cheatsheets. They can help you learn more about formatting content on Markdown files:
 
 - [_Markdown Cheatsheet_](https://github.com/auth0/blog/blob/master/post-cheat-sheet.markdown)
 - [_Auth0 Markdown Cheatsheet_](https://github.com/auth0/blog/blob/master/post-cheat-sheet.markdown)

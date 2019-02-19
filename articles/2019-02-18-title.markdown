@@ -12,13 +12,36 @@ related:
 - 2017-11-15-an-example-of-all-possible-elements
 ---
 
-**TL;DR:** Briefly describe what this article is about and what the reader will achieve/learn after reading it. Please,
-also provide the link to a GitHub repository that contains code related to this article.
+**TL;DR:** [Flutter](https://flutter.io/) is Google's cross-plaform SDK created to help developers build expressive and beautiful mobile applications. In this article, you will learn how to build and secure a Flutter application with Auth0. You can checkout the code developed throughout the article [in this GitHub repository](https://github.com/thedejifab/flutter_auth0).
 
-## The Second Most Important Title
 
-Usually, we start describing again what this article is about. The difference, however, is that here we can explain with
-more words. Another important thing that we should include in this first paragraph are the name of the main technologies
-that we will talk about, and add a link to them. For example, we could say that we are going to use
-[React](https://reactjs.org/) and [Redux](https://redux.js.org/) to develop a simple
-[SPA (Single Page Application)](https://en.wikipedia.org/wiki/Single-page_application).
+## Prerequisites
+
+Before getting started with this article, you need a working knowledge of Flutter. If you need help getting started, you can follow the codelabs in [this link](https://flutter.io/docs/codelabs). Additionally, if you have a knack for well-architected code, you'll find this very enjoyable.
+
+## Overview
+
+### OAuth2 flow and mobile applications
+
+According to the [OAuth website](https://oauth.net/2/), 'OAuth 2.0 is the industry-standard protocol for authorization'. It allows the delegation of user **authorization** (not authentication) responsibilities to other services. A typical example of OAuth 2.0 in action can be seen when trying to sign up for Auth0 using GitHub/Microsoft/Google. OAuth 2.0 helps Auth0 delegate authorization to these third-party platforms without having to bear the weight of securing user's credentials. 
+
+OAuth 2.0 provides different flows for user authorization, with the Authorization Code Grant flow being the recommended approach for securing mobile applications.
+
+## Project setup
+
+### Creating an Auth0 Project
+
+Auth0 is an Identity-as-a-Service platform that provides enterprises with features such as **Social Login** and **Passwordless Login** amongst many others, aimed at easing the process of online identity management.
+
+To integrate Auth0 into your Flutter app, you need an Auth0 account. If you have an exisiting account, you can use it. If you don't, [click here to create one](https://auth0.com/signup).
+
+Upon creating an Auth0 account, follow the steps below to setup an application.
+* Go to the [Applications](https://manage.auth0.com/#/applications) section of your dashboard
+* Click on the [Create Application](https://manage.auth0.com/#/applications/create) button.
+* Enter a name for your application (e.g "Flutter Application")
+* Finally, select "Native App" as the application type and click the Create button.
+
+<!-- * Go to the [Applications](https://manage.auth0.com/#/applications) section of your dashboard
+* then click on the [Create Application](https://manage.auth0.com/#/applications/create) button.
+* next, enter a name for your application (e.g "Flutter Application"), and
+* finally, select "Native App" as the application type and click the Create button. -->

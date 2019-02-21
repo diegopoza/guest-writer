@@ -41,6 +41,8 @@ Upon creating an Auth0 account, follow the steps below to setup an application.
 * Enter a name for your application (e.g "Flutter Application")
 * Finally, select "Native App" as the application type and click the Create button.
 
+![Create application screenshot](images/auth0.png)
+
 After creating an application, navigate to the "Settings" tab of your application to set a callback URI in the "Allowed Callback URLs" field. In my case, I made this unique, and with a custom URI scheme. The purpose of the callback URI will be explained into details later in the article.
 
 ### Creating a Flutter project
@@ -73,10 +75,12 @@ Then, run `flutter packages get` command in your project's root directory with a
 
 #### Project flow
 
-The application developed throughout this article is secured using Auth0's Authorization Code Grant Flow with PKCE. A detailed illustration of how this is used in the application is shown below.
+The application developed throughout this article is secured using Auth0's [Authorization Code Grant Flow with PKCE](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce). A detailed illustration of how this is used in the application is shown below.
+
+![Create application screenshot](images/auth0.png)
 
 #### Detailing the choice of state management pattern used
 
 This article utilizes the [ReBLOC pattern](https://pub.dartlang.org/packages/rebloc). ReBLOC combines concepts from Redux and BLOC, Flutter's two most popular state management patterns. It affords Flutter developers the chance to leverage upon Streams from BLOC, while also having access to Middlewares and Actions as seen in Redux.
 
-In the course of the article, you'll get familiar with concepts like actions, blocs, states, dispatchers and subscribers - which form the basis of the ReBLOC pattern.
+In the course of the article, you'll get familiar with concepts like actions, blocs, states, dispatchers and subscribers - all of which form the basis of the ReBLOC pattern.

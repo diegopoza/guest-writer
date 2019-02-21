@@ -77,7 +77,7 @@ Then, run `flutter packages get` command in your project's root directory with a
 
 The application developed throughout this article is secured using Auth0's [Authorization Code Grant Flow with PKCE](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce). A detailed illustration of how this is used in the application is shown below.
 
-![Create application screenshot](images/flow.png)
+![Create application screenshot](images/flow.PNG)
 
 #### Detailing the choice of state management pattern used
 

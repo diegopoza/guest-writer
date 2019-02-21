@@ -17,21 +17,21 @@ related:
 
 ## Prerequisites
 
-Before getting started with this article, you need a working knowledge of Flutter. If you need help getting started, you can follow the codelabs in [this link](https://flutter.io/docs/codelabs). Additionally, if you have a knack for well-architected code, you'll find this very enjoyable.
+Before getting started with this article, you need a working knowledge of Flutter. If you need help getting started, you can follow the codelabs on the [Flutter website](https://flutter.io/docs/codelabs). Additionally, if you have a knack for well-architected code, you'll find this very enjoyable.
 
 ## Overview
 
 ### OAuth2 flow and mobile applications
 
-According to the [OAuth website](https://oauth.net/2/), 'OAuth 2.0 is the industry-standard protocol for authorization'. It allows the delegation of user **authorization** (not authentication) responsibilities to other services. A typical example of OAuth 2.0 in action can be seen when trying to sign up for Auth0 using GitHub/Microsoft/Google. OAuth 2.0 helps Auth0 delegate authorization to these third-party platforms without having to bear the weight of securing user's credentials. 
+According to the [OAuth website](https://oauth.net/2/), 'OAuth 2.0 is the industry-standard protocol for authorization'. It allows the delegation of user **authorization** (not authentication) responsibilities to other services. A typical example of OAuth 2.0 in action can be seen when trying to sign up for Auth0 using GitHub/Microsoft/Google. OAuth 2.0 helps Auth0 delegate authorization to these third-party platforms without having to bear the weight of securing user credentials. 
 
-OAuth 2.0 provides different flows for user authorization, with the Authorization Code Grant flow being the recommended approach for securing mobile applications.
+OAuth 2.0 provides different flows for user authorization, with the Authorization Code Grant Flow being the recommended approach for securing mobile applications.
 
 ## Project setup
 
 ### Creating an Auth0 Project
 
-Auth0 is an Identity-as-a-Service platform that provides enterprises with features such as **Social Login** and **Passwordless Login** amongst many others, aimed at easing the process of online identity management.
+Auth0 is an Identity-as-a-Service (IDaaS) platform that provides enterprises with features such as **Social Login** and **Passwordless Login** amongst many others, aimed at easing the process of online identity management.
 
 To integrate Auth0 into your Flutter app, you need an Auth0 account. If you have an exisiting account, you can use it. If you don't, [click here to create one](https://auth0.com/signup).
 
@@ -41,7 +41,42 @@ Upon creating an Auth0 account, follow the steps below to setup an application.
 * Enter a name for your application (e.g "Flutter Application")
 * Finally, select "Native App" as the application type and click the Create button.
 
-<!-- * Go to the [Applications](https://manage.auth0.com/#/applications) section of your dashboard
-* then click on the [Create Application](https://manage.auth0.com/#/applications/create) button.
-* next, enter a name for your application (e.g "Flutter Application"), and
-* finally, select "Native App" as the application type and click the Create button. -->
+After creating an application, navigate to the "Settings" tab of your application to set a callback URI in the "Allowed Callback URLs" field. In my case, I made this unique, and with a custom URI scheme. The purpose of the callback URI will be explained into details later in the article.
+
+### Creating a Flutter project
+
+#### Scaffolding a Flutter project
+To facilitate the process of creating a new Flutter project you are going to use the Flutter CLI tool. To do this, open a terminal and navigate to your projects directory to run the following command. 
+
+```bash
+flutter create app_name
+```
+
+The CLI tools generates a template project within a couple of seconds to get you started. The tool requires internet connection to download dependencies during project creation, except an `--offline-project` option is passed to the `create` command to defer the downloading of dependencies. After project generation, you can now open the project in your preferred IDE.
+
+#### Installing Dependencies
+As you will see in the course of the article, the project requires three major dependencies - the `rebloc` package to use ReBLOC for state management, the `http` package for performing network requests, the `crypto` package for generating secure codes used in the authorization process, and the `uni_links` package which affords the ability to deep-link from web URLs into a Flutter application.
+
+With the project open in your IDE, navigate to your `/pubspec.yaml` file to add the dependencies by modifying the `dependencies` section as seen below. 
+
+```dart
+dependencies:
+  flutter:
+    sdk: flutter
+  crypto: ^2.0.6
+  rebloc: ^0.2.1
+  uni_links: ^0.1.4
+  http: ^0.12.0+1
+```
+
+Then, run `flutter packages get` command in your project's root directory with a stable internet connection to download the dependencies.
+
+#### Project flow
+
+The application developed throughout this article is secured using Auth0's Authorization Code Grant Flow with PKCE. A detailed illustration of how this is used in the application is shown below.
+
+#### Detailing the choice of state management pattern used
+
+This article utilizes the [ReBLOC pattern](https://pub.dartlang.org/packages/rebloc). ReBLOC combines concepts from Redux and BLOC, Flutter's two most popular state management patterns. It affords Flutter developers the chance to leverage upon Streams from BLOC, while also having access to Middlewares and Actions as seen in Redux.
+
+In the course of the article, you'll get familiar with concepts like actions, blocs, states, dispatchers and subscribers - which form the basis of the ReBLOC pattern.

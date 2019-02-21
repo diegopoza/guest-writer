@@ -54,7 +54,7 @@ To facilitate the process of creating a new Flutter project you are going to use
 flutter create app_name
 ```
 
-The CLI tools generates a template project within a couple of seconds to get you started. The tool requires internet connection to download dependencies during project creation, except an `--offline-project` option is passed to the `create` command to defer the downloading of dependencies. After project generation, you can now open the project in your preferred IDE.
+The CLI tool generates a template project within a couple of seconds to get you started. The tool requires internet connection to download dependencies during project creation, except an `--offline-project` option is passed to the `create` command to defer the downloading of dependencies. After project generation, you can now open the project in your preferred IDE.
 
 #### Installing Dependencies
 As you will see in the course of the article, the project requires three major dependencies - the `rebloc` package to use ReBLOC for state management, the `http` package for performing network requests, the `crypto` package for generating secure codes used in the authorization process, and the `uni_links` package which affords the ability to deep-link from web URLs into a Flutter application.

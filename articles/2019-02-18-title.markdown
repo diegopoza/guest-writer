@@ -27,7 +27,7 @@ You also need to have the installations outlined below on your machine.
   * Visual Studio Code. 
   with Dart and Flutter plugins installed.
 
-**Note:** Additionally, if you have a knack for well-architected code, you'll find this very enjoyable.
+> **Note:** Additionally, if you have a knack for well-architected code, you'll find this very enjoyable.
 
 ## OAuth 2.0 Flow and Mobile Applications
 
@@ -64,6 +64,7 @@ After creating an application, navigate to the "Settings" tab of your applicatio
 This could be any value ranging from normal web URLs with an HTTP scheme (E.g `https://myapp.com`) to URIs with custom schemes (E.g `myapp://logincallback`). In my case, I used the latter and made it unique. If you don't know the purpose of the callback URI, don't worry, the article will explain this concept into details later.
 
 ### Scaffolding a Flutter project
+
 To facilitate the process of creating a new Flutter project you are going to use the Flutter CLI tool. To do this, open a terminal and navigate to your projects directory to run the following command. 
 
 ```bash
@@ -73,6 +74,7 @@ flutter create flutter_app
 The CLI tool generates a template project within a couple of seconds to get you started. The tool requires internet connection to download dependencies during project creation, except an `--offline-project` option is passed to the `create` command to defer the downloading of dependencies. After project generation, you can now open the project in your preferred IDE.
 
 ### Installing dependencies
+
 As you will see in the course of the article, the project requires three major dependencies - the [`rebloc`](https://pub.dartlang.org/packages/rebloc) package to use ReBLOC for state management, the [`http`](https://pub.dartlang.org/packages/http) package for performing network requests, the [`crypto`](https://pub.dartlang.org/packages/crypto) package for generating secure codes used in the authorization process, and the [`uni_links`](https://pub.dartlang.org/packages/uni_links) package which affords the ability to deep-link from web URLs into a Flutter application.
 
 With the project open in your IDE, navigate to your `/pubspec.yaml` file to add the dependencies by modifying the `dependencies` section as seen below. 
@@ -89,4 +91,4 @@ dependencies:
 
 Then, run `flutter packages get` command in your project's root directory with a stable internet connection to download the dependencies.
 
-**Note:** This article utilizes the [ReBLOC pattern](https://pub.dartlang.org/packages/rebloc). In the course of the article, you'll use concepts like actions, blocs, states, dispatchers and subscribers - all of which form the basis of the ReBLOC pattern. If you are not familiar with these concepts, don't worry, you will still be able to follow along with this article.
+> **Note:** This article utilizes the [ReBLOC pattern](https://pub.dartlang.org/packages/rebloc). In the course of the article, you'll use concepts like actions, blocs, states, dispatchers and subscribers - all of which form the basis of the ReBLOC pattern. If you are not familiar with these concepts, don't worry, you will still be able to follow along with this article.

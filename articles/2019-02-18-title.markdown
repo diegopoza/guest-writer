@@ -31,11 +31,11 @@ You also need to have the installations outlined below on your machine.
 
 ## OAuth 2.0 Flow and Mobile Applications
 
-According to the [OAuth website](https://oauth.net/2/), 'OAuth 2.0 is the industry-standard protocol for authorization'. It allows the delegation of user **authorization** (not authentication) responsibilities to other services. A typical example of OAuth 2.0 in action can be seen when trying to sign up for Auth0 using GitHub/Microsoft/Google. OAuth 2.0 helps Auth0 delegate authorization to these third-party platforms without having to bear the weight of securing user credentials. 
+OAuth 2.0 is an industry-standard protocol for authorization. It allows the delegation of user **authorization** (not authentication) responsibilities to other services. A typical example of OAuth 2.0 in action can be seen when trying to sign up for a third-party app using Facebook. OAuth 2.0 helps the third-party app delegate user authorization tasks to Facebook without having to bear the weight of securing user credentials. 
 
 OAuth 2.0 provides [different flows](https://auth0.com/docs/api-auth/which-oauth-flow-to-use) for user authorization, with the [Authorization Code Grant Flow with PKCE](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce) being the recommended approach for securing mobile applications. A detailed illustration of how this is used in the application developed in the article is shown below.
 
-![Create application screenshot](images/flow.PNG)
+![Create application screenshot](images/flow.png)
 
 ## Project Setup
 
@@ -59,13 +59,15 @@ Upon creating an Auth0 account, follow the steps below to setup an application.
 
 ![Create application screenshot](images/auth0.png)
 
-After creating an application, navigate to the "Settings" tab of your application to set a callback URI in the "Allowed Callback URLs" field. In my case, I made this unique, and with a custom URI scheme. The purpose of the callback URI will be explained into details later in the article.
+After creating an application, navigate to the "Settings" tab of your application to set a callback URI in the "Allowed Callback URLs" field. 
+
+This could be any value ranging from normal web URLs with an HTTP scheme (E.g `https://myapp.com`) to URIs with custom schemes (E.g `myapp://logincallback`). In my case, I used the latter and made it unique. If you don't know the purpose of the callback URI, don't worry, the article will explain this concept into details later.
 
 ### Scaffolding a Flutter project
 To facilitate the process of creating a new Flutter project you are going to use the Flutter CLI tool. To do this, open a terminal and navigate to your projects directory to run the following command. 
 
 ```bash
-flutter create app_name
+flutter create flutter_app
 ```
 
 The CLI tool generates a template project within a couple of seconds to get you started. The tool requires internet connection to download dependencies during project creation, except an `--offline-project` option is passed to the `create` command to defer the downloading of dependencies. After project generation, you can now open the project in your preferred IDE.

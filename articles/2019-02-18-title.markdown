@@ -92,3 +92,23 @@ dependencies:
 Then, run `flutter packages get` command in your project's root directory with a stable internet connection to download the dependencies.
 
 > **Note:** This article utilizes the [ReBLOC pattern](https://pub.dartlang.org/packages/rebloc). In the course of the article, you'll use concepts like actions, blocs, states, dispatchers and subscribers - all of which form the basis of the ReBLOC pattern. If you are not familiar with these concepts, don't worry, you will still be able to follow along with this article.
+
+## Flutter and Auth0 in Practice
+
+In this section, you will learn how to authorize users, fetch user details and log users out with Auth0 using the Authorization Code Grant Flow with PKCE. More specifically, you will learn how to:
+
+* Setup an Authorization URL;
+  * Create a Code Challenge,
+  * Create a Code Verifier,
+  * Construct the Authorization URL.
+* Get the User's Authorization;
+  * Launch the Authorization URL within your app,
+  * Retrieve the Authorization Code.
+* Access APIs after authorization;
+  * Exchange Authorization Code for Access Tokens,
+  * Fetch User Profile with Access Token,
+  * Persist Refresh Tokens for subsequent access.
+* Handle logouts.
+  * Handling Application-Layer logouts,
+  * Handle Auth0-Layer logouts.
+

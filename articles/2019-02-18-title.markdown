@@ -142,7 +142,7 @@ The code snippet above declares parameters necessary for the creation of an Auth
 
 On the other hand, the `SCOPES` variable specifies the kind of access required by your application. The `offline_access` option ensures that a `refresh_token` is retrieved alongside the `access_token` while exchanging the authorization code for access token. As you will see in latter parts of this article, the `refresh_token` eliminates the need for unneccessary repetition of the authorization process.
 
-> Note: For the <AUTH0_DOMAIN> and <CLIENT_ID> placeholders, replace them with the **Domain** and **Client ID** fields that can be found in the **Settings** tab of your application.
+> **Note:** For the <AUTH0_DOMAIN> and <CLIENT_ID> placeholders, replace them with the **Domain** and **Client ID** fields that can be found in the **Settings** tab of your application.
 
 #### Create a Code Verifier
 
@@ -157,7 +157,10 @@ String _createVerifier() {
 }
 ```
 
+<!-- Check what's here really -->
+In the code above, a random list is generated and encoded as a Base64 String to get a code verifier.
 
+> **Note:** The `.replaceAll("=","")` operation on the base64 String removes the unrequired padding which leads to error when verifying the code challenge.
 
 
 

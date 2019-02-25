@@ -160,7 +160,7 @@ String _createVerifier() {
 <!-- Check what's here really -->
 In the code above, a random list is generated and encoded as a Base64 String to get a code verifier.
 
-> **Note:** The `.replaceAll("=","")` operation on the base64 String removes the unrequired padding which leads to error when verifying the code challenge.
+> **Note:** The `.replaceAll("=","")` operation performed on the Base64 String removes the unrequired padding which leads to error when verifying the code challenge.
 
 #### Create a code challenge
 
@@ -177,11 +177,23 @@ String _createChallenge(String verifier) {
 
 The code snippet above encodes the code verifier using UTF8 and converts the result to a SHA256 byte before encoding again, this time into a Base64 String to generate the code challenge.
 
-> **Note:** The SHA256 conversion method used in generating the digest byte will also prove significant in the [Exchange authorization code for access tokens]() section
+> **Note:** The SHA256 conversion method used in generating the digest byte determines what algorithm is used in verifyng the 
 
 #### Construct the authorization URL.
 
+To wrap things up on setting up the authorization, add the code snippet below to the `lib/utils/url_utils.dart` file:
 
+```dart
+///To create authorization URL
+String getAuthorizationUrl() {
+  codeVerifier = _createVerifier();
+  codeChallenge = _createChallenge(codeVerifier);
+  String authorizationUrl =
+      "https://$DOMAIN/authorize?scope=$SCOPES&audience=$AUDIENCE&response_type=code&client_id=$CLIENT_ID&code_challenge=$codeChallenge&code_challenge_method=S256&redirect_uri=$REDIRECT_URI";
+  return authorizationUrl;
+}
+```
 
+The `getAuthorizationUrl()` function initializes the `codeVerifier` and `codeChallenge` variables. It then uses them alongside previously initialized variables such as `DOMAIN` and `SCOPES` to build the `authorizationUrl`.
 
-
+### Get the user's authorization

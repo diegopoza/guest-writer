@@ -177,7 +177,7 @@ String _createChallenge(String verifier) {
 
 The code snippet above encodes the code verifier using UTF8 and converts the result to a SHA256 byte before encoding again, this time into a Base64 String to generate the code challenge.
 
-> **Note:** The SHA256 conversion method used in generating the digest byte determines what algorithm is used in verifyng the 
+> **Note:** The SHA256 conversion method used in generating the digest byte determines what algorithm is used in verifying the code challenge in [Exchange authorization code for access tokens]() section.
 
 #### Construct the authorization URL.
 

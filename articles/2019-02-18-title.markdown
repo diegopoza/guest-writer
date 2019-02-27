@@ -37,6 +37,12 @@ OAuth 2.0 provides [different flows](https://auth0.com/docs/api-auth/which-oauth
 
 ![Create application screenshot](images/flow.png)
 
+## What You'll Build
+
+Throughout this article, you'll implement an application that uses social login (with GitHub and Google) and database login. Upon logging in, the application will fetch and render the user's profile details as seen in the screenshots below.
+
+<!-- Add screenshots grouped together here -->
+
 ## Project Setup
 
 In this section, you will setup the application to be used throughout the article. More specifically, you will:
@@ -59,9 +65,9 @@ Upon creating an Auth0 account, follow the steps below to setup an application.
 
 ![Create application screenshot](images/auth0.png)
 
-After creating an application, navigate to the **Settings** tab of your application to set a callback URI in the **Allowed Callback URLs** field. 
+With database login and Google social login enabled by default, click on the **Connection > Social** menu on your dashboard menu. Then, toggle on **GitHub** as one of the enabled social connections. In the displayed dialog, use the default details and click the **SAVE** button to finish.
 
-<!-- add notes about enabling Signin with Github -->
+Finally, navigate to the **Settings** tab of your application to set a callback URI in the **Allowed Callback URLs** field. 
 
 This could be any value ranging from normal web URLs with an HTTP scheme (E.g `https://myapp.com`) to URIs with custom schemes (E.g `myapp://logincallback`). In my case, I used the latter and made it unique. If you don't know the purpose of the callback URI, don't worry, the article will explain this concept into details later.
 
@@ -77,7 +83,7 @@ The CLI tool generates a template project within a couple of seconds to get you 
 
 ### Installing dependencies
 
-As you will see in the course of the article, the project requires three major dependencies - the [`rebloc`](https://pub.dartlang.org/packages/rebloc) package to use ReBLOC for state management, the [`http`](https://pub.dartlang.org/packages/http) package for performing network requests, the [`crypto`](https://pub.dartlang.org/packages/crypto) package for generating secure codes used in the authorization process, and the [`uni_links`](https://pub.dartlang.org/packages/uni_links) package which affords the ability to deep-link from web URLs into a Flutter application.
+As you will see in the course of the article, the project requires four major dependencies - the [`rebloc`](https://pub.dartlang.org/packages/rebloc) package to use ReBLOC for state management, the [`http`](https://pub.dartlang.org/packages/http) package for performing network requests, the [`crypto`](https://pub.dartlang.org/packages/crypto) package for generating secure codes used in the authorization process, and the [`uni_links`](https://pub.dartlang.org/packages/uni_links) package which affords the ability to deep-link from web URLs into a Flutter application.
 
 With the project open in your IDE, navigate to your `/pubspec.yaml` file to add the dependencies by modifying the `dependencies` section as seen below. 
 

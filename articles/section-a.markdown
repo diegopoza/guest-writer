@@ -1,8 +1,6 @@
 ### Create a user interface
 
-As seen in the screenshots below, the application contains a login screen and a profile screen, with the launched authorization URL being the linkage between both screens.
-
-<!-- Add screenshots grouped together here -->
+As seen in the [What You'll Build]() section, the application contains a login screen and a profile screen, with the launched authorization URL being the linkage between both screens.
 
 #### Create a login screen
 

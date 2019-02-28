@@ -121,7 +121,33 @@ In this section, you will learn how to authorize users, fetch user details and l
   * Handle application-layer logouts,
   * Handle Auth0-layer logouts.
 
-<!--Add comments and a tree for folder structure  -->
+Before getting started, create the following directories and files in addition to the `main.dart` file in the project's `/lib` directory such that your `/lib` directory's structure is as seen below:
+
+```bash
+├── rebloc
+│   ├── actions
+│   │   ├── actions.dart
+│   ├── bloc
+│   │   ├── auth_bloc.dart
+│   │   ├── main_bloc.dart
+│   │   ├── profile_bloc.dart
+│   ├── models
+│   │   ├── models.dart 
+│   ├── state
+│   │   ├── app_state.dart
+│   │   ├── main_state.dart
+│   │   ├── auth_state.dart
+│   │   ├── profile_state.dart
+│   └── store.dart
+├── screens
+│   ├── profile.dart
+│   ├── login.dart
+├── utils
+│   ├── auth_utils.dart
+│   ├── url_utils.dart
+│   ├── persistence.dart
+└── main.dart
+```
 
 <!-- SECTION A HERE -->
 

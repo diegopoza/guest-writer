@@ -2,7 +2,7 @@
 
 User authorization with Auth0 involves redirecting the user to an authorization URL which provides an authorization dialog. After authorization, the user is redirected to a callback URL which contains details about the user' authorization. An authorization URL requires parameters including `redirect_uri`, `client_id` and a few other parameters as seen [here](https://auth0.com/docs/protocols/oauth2#authorization-endpoint). Specifically, when authorizing using the Authorization Code Grant Flow with PKCE, the `code_challenge` and `code_challenge_method` parameters are required.
 
-To get started with this, create a file named `url_utils.dart` in the `/lib/utils` directory and add the code below: 
+To get started with this, add the code below to the file `/lib/utils/url_utils.dart`: 
 
 ```dart
 import 'dart:math';
@@ -28,7 +28,7 @@ On the other hand, the `SCOPES` variable specifies the kind of access required b
 
 #### Create a code verifier
 
-A code verifier is a cryptographically random key used to generate a code challenge. To create a code verifier, append the snippet below to the `lib/utils/url_utils.dart` file:
+A code verifier is a cryptographically random key used to generate a code challenge. To create a code verifier, append the snippet below to the `/lib/utils/url_utils.dart` file:
 
 ```dart
 ///To create code verifier
@@ -46,7 +46,7 @@ In the code above, a random list is generated and encoded as a Base64 String to 
 
 #### Create a code challenge
 
-A code verifier is required when creating a code challenge to be passed to the authorization endpoint. As you'll see in [Exchange authorization code for access tokens]() section, the code verifier passed must be the same with the code verifier used in generating a code challenge. To create a code challenge, append the snippet below to the `lib/utils/url_utils.dart` file:
+A code verifier is required when creating a code challenge to be passed to the authorization endpoint. As you'll see in [Exchange authorization code for access tokens]() section, the code verifier passed must be the same with the code verifier used in generating a code challenge. To create a code challenge, append the snippet below to the `/lib/utils/url_utils.dart` file:
 
 ```dart
 ///To create code challenge
@@ -63,7 +63,7 @@ The code snippet above encodes the code verifier using UTF8 and converts the res
 
 #### Construct the authorization URL.
 
-To wrap things up on setting up the authorization, add the code snippet below to the `lib/utils/url_utils.dart` file:
+To wrap things up on setting up the authorization, add the code snippet below to the `/lib/utils/url_utils.dart` file:
 
 ```dart
 ///To create authorization URL

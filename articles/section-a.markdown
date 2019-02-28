@@ -4,7 +4,7 @@ As seen in the [What You'll Build]() section, the application contains a login s
 
 #### Create a login screen
 
-To create a login screen, create a file named `login.dart` in the `lib/screeens` directory and add the code below:
+To create a login screen, add the code below to the `/lib/screeens/login.dart` file:
 
 ```dart
 import 'package:flutter/material.dart';
@@ -44,7 +44,7 @@ The code above creates a login screen that takes in a string    `loginError` as 
 
 #### Create a profile screen
 
-To create a profile screen, create a file named `profile.dart` in the `lib/screens` directory and add the code snippet below:
+To create a profile screen, add the code snippet below to the `/lib/screeens/profile.dart` file:
 
 ```dart
 import 'package:flutter/material.dart';
@@ -103,7 +103,7 @@ class Profile extends StatelessWidget {
 
 In a similar fashion to the login screen, the snippet above creates a dummy profile screen that takes in an optional parameter, `code`, which is the authorization code used to retrieve access token which is subsequently used in accessing the user's profile details.
 
-Finally, clear the boilerplate code in your `lib/main.dart` file excluding the `MyApp` class and `main()` method. Then, set `Login()` as the value for the home attribute. This should leave you with the code below in the `lib/main.dart` file:
+Finally, clear the boilerplate code in your `/lib/main.dart` file excluding the `MyApp` class and `main()` method. Then, set `Login()` as the value for the home attribute. This should leave you with the code below in the `/lib/main.dart` file:
 
 ```dart
 import 'package:flutter/material.dart';

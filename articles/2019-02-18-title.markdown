@@ -118,8 +118,8 @@ In this section, you will learn how to authorize users, fetch user details and l
   * Fetch user profile with access token,
   * Persist refresh tokens for subsequent access.
 * Handle logouts.
-  * Handle application-layer logouts,
   * Handle Auth0-layer logouts.
+  * Handle application-layer logouts,
 
 Before getting started, create the following directories and files in addition to the `main.dart` file in the project's `/lib` directory such that your `/lib` directory's structure is as seen below:
 
@@ -154,3 +154,9 @@ Before getting started, create the following directories and files in addition t
 <!-- SECTION B HERE -->
 
 <!-- SECTION C HERE -->
+
+<!-- SECTION D HERE -->
+
+<!-- SECTION E HERE --> 
+
+<!-- SECTION F (CONCLUSION) HERE -->

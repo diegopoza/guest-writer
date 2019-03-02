@@ -55,39 +55,38 @@ In this section, you will setup the application to be used throughout the articl
 
 Auth0 is an Identity-as-a-Service (IDaaS) platform that provides enterprises with features such as [**Social Login**](https://auth0.com/learn/social-login/) and [**Passwordless Login**](https://auth0.com/passwordless) amongst many others, aimed at easing the process of online identity management.
 
-To integrate Auth0 into your Flutter app, you need an Auth0 account. If you have an exisiting account, you can use it. If you don't, [click here to create one](https://auth0.com/signup).
+To integrate Auth0 into your Flutter app, you need an Auth0 account. If you have an existing account, you can use it. If you don't, [click here to create one](https://auth0.com/signup).
 
-Upon creating an Auth0 account, follow the steps below to setup an application.
-* Go to the [Applications](https://manage.auth0.com/#/applications) section of your dashboard
-* Click on the [Create Application](https://manage.auth0.com/#/applications/create) button.
-* Enter a name for your application (e.g "Flutter Application")
-* Finally, select "Native App" as the application type and click the Create button.
+After creating an Auth0 account, follow the steps below to setup an application:
+
+* Go to the [**Applications**](https://manage.auth0.com/#/applications) section of your dashboard
+* Click on the [**Create Application**](https://manage.auth0.com/#/applications/create) button.
+* Enter a name for your application (e.g "Flutter Application").
+* Finally, select **Native App** as the application type and click the **Create** button.
 
 ![Create application screenshot](images/auth0.png)
 
-With database login and Google social login enabled by default, click on the **Connection > Social** menu on your dashboard menu. Then, toggle on **GitHub** as one of the enabled social connections. In the displayed dialog, use the default details and click the **SAVE** button to finish.
+With database login and Google social login enabled by default, click on the **Connection > Social** menu on your dashboard. Then, toggle on **GitHub** as one of the enabled social connections. In the displayed dialog prompt, use the default details and click the **SAVE** button to finish.
 
-Finally, navigate to the **Settings** tab of your application to set a callback URI in the **Allowed Callback URLs** field. 
-
-This could be any value ranging from normal web URLs with an HTTP scheme (E.g `https://myapp.com`) to URIs with custom schemes (E.g `myapp://logincallback`). In my case, I used the latter and made it unique. If you don't know the purpose of the callback URI, don't worry, the article will explain this concept into details later.
+Finally, navigate to the **Settings** tab of your application to set a callback URL in the **Allowed Callback URLs** field. This could be any value ranging from normal web URLs with an HTTP scheme (E.g `https://myapp.com`) to URIs with custom schemes (E.g `myapp://logincallback`). In my case, I used the latter and made it unique. If you don't know the purpose of the callback URL, don't worry, the article will explain this concept into details later.
 
 ### Scaffolding a Flutter project
 
-To facilitate the process of creating a new Flutter project you are going to use the Flutter CLI tool. To do this, open a terminal and navigate to your projects directory to run the following command. 
+To facilitate the process of creating a new Flutter project you are going to use the Flutter CLI tool. To do this, open a terminal and navigate to your projects directory to run the following command:
 
 ```bash
 flutter create flutter_app
 ```
 
-The CLI tool generates a template project within a couple of seconds to get you started. The tool requires internet connection to download dependencies during project creation, except an `--offline-project` option is passed to the `create` command to defer the downloading of dependencies. After project generation, you can now open the project in your preferred IDE.
+The CLI tool generates a template project within a couple of seconds to get you started. The tool requires internet connection to download dependencies during project creation, except an `--offline` option is passed to the `create` command to defer the downloading of dependencies. After project generation, you can now open the project in your preferred IDE.
 
 ### Installing dependencies
 
-As you will see in the course of the article, the project requires four major dependencies - the [`rebloc`](https://pub.dartlang.org/packages/rebloc) package to use ReBLOC for state management, the [`http`](https://pub.dartlang.org/packages/http) package for performing network requests, the [`crypto`](https://pub.dartlang.org/packages/crypto) package for generating secure codes used in the authorization process, and the [`uni_links`](https://pub.dartlang.org/packages/uni_links) package which affords the ability to deep-link from web URLs into a Flutter application.
+As you will see in the course of the article, the project requires six main dependencies - the [`rebloc`](https://pub.dartlang.org/packages/rebloc) package to which enables using ReBLOC for state management, the [`http`](https://pub.dartlang.org/packages/http) package for performing network requests, the [`crypto`](https://pub.dartlang.org/packages/crypto) package for generating secure codes used in the authorization process, the [`flutter_custom_tabs`](https://pub.dartlang.org/packages/flutter_custom_tabs) package for launching URLs, the [`shared_preferences`](https://pub.dartlang.org/packages/shared_preferences) package for persistence, and the [`uni_links`](https://pub.dartlang.org/packages/uni_links) package which affords the ability to deep-link from web URLs into a Flutter application.
 
-With the project open in your IDE, navigate to your `/pubspec.yaml` file to add the dependencies by modifying the `dependencies` section as seen below. 
+With the project open in your IDE, navigate to your `/pubspec.yaml` file to add the dependencies by modifying the `dependencies` section as seen below:
 
-```dart
+```yaml
 dependencies:
   flutter:
     sdk: flutter
@@ -95,15 +94,17 @@ dependencies:
   rebloc: ^0.2.1
   uni_links: ^0.1.4
   http: ^0.12.0+1
+  flutter_custom_tabs: ^0.4.0
+  shared_preferences: ^0.4.3
 ```
 
 Then, run `flutter packages get` command in your project's root directory with a stable internet connection to download the dependencies.
 
-> **Note:** This article utilizes the [ReBLOC pattern](https://pub.dartlang.org/packages/rebloc). In the course of the article, you'll use concepts like actions, blocs, states, dispatchers and subscribers - all of which form the basis of the ReBLOC pattern. If you are not familiar with these concepts, don't worry, you will still be able to follow along with this article.
+> **Note:** This article utilizes the [ReBLOC state management pattern](https://pub.dartlang.org/packages/rebloc). In the course of the article, you'll use concepts like actions, blocs, states, dispatchers and subscribers - all of which form the basis of the ReBLOC pattern. If you are not familiar with these concepts, don't worry, you will still be able to follow along with this article.
 
 ## Flutter and Auth0 in Practice
 
-In this section, you will learn how to authorize users, fetch user details and log users out with Auth0 using the Authorization Code Grant Flow with PKCE. More specifically, you will learn how to:
+In this section, you will learn how to authorize users, fetch user details, and log users out with Auth0 using the Authorization Code Grant Flow with PKCE. More specifically, you will learn how to:
 
 * Create a user interface;
 * Setup an authorization URL;
@@ -118,21 +119,19 @@ In this section, you will learn how to authorize users, fetch user details and l
   * Fetch user profile with access token,
   * Persist refresh tokens for subsequent access.
 * Handle logouts.
-  * Handle Auth0-layer logouts.
-  * Handle application-layer logouts,
+  * Handle Auth0-layer logouts,
+  * Handle application-layer logouts.
 
-Before getting started, create the following directories and files in addition to the `main.dart` file in the project's `/lib` directory such that your `/lib` directory's structure is as seen below:
+Before getting started, create the following directories and files in addition to the `main.dart` file in the project's `/lib` directory such that the directory's structure is as seen below:
 
 ```bash
 ├── rebloc
-│   ├── actions
-│   │   ├── actions.dart
+│   ├── actions.dart
+│   ├── models.dart
 │   ├── bloc
 │   │   ├── auth_bloc.dart
 │   │   ├── main_bloc.dart
 │   │   ├── profile_bloc.dart
-│   ├── models
-│   │   ├── models.dart 
 │   ├── state
 │   │   ├── app_state.dart
 │   │   ├── main_state.dart

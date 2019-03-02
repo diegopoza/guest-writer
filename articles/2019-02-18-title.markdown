@@ -31,15 +31,15 @@ You also need to have the installations outlined below on your machine.
 
 ## OAuth 2.0 Flow and Mobile Applications
 
-OAuth 2.0 is an industry-standard protocol for authorization. It allows the delegation of user **authorization** (not authentication) responsibilities to other services. A typical example of OAuth 2.0 in action can be seen when trying to sign up for a third-party app using Facebook. OAuth 2.0 helps the third-party app delegate user authorization tasks to Facebook without having to bear the weight of securing user credentials. 
-
-OAuth 2.0 provides [different flows](https://auth0.com/docs/api-auth/which-oauth-flow-to-use) for user authorization, with the [Authorization Code Grant Flow with PKCE](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce) being the recommended approach for securing mobile applications. A detailed illustration of how this is used in the application developed in the article is shown below.
+OAuth 2.0 is an industry-standard protocol for authorization. It allows the delegation of user **authorization** (not authentication) responsibilities to other services. A typical example of OAuth 2.0 in action is seen when trying to sign up for a third-party app using Facebook. OAuth 2.0 helps the third-party app delegate user authorization tasks to Facebook without having to bear the weight of securing user credentials. 
+ 
+OAuth 2.0 provides [different flows](https://auth0.com/docs/api-auth/which-oauth-flow-to-use) for user authorization, with the [Authorization Code Grant Flow with PKCE](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce) being the recommended approach for securing mobile applications. A detailed illustration of how this is used in the application developed in the article is shown below:
 
 ![Create application screenshot](images/flow.png)
 
 ## What You'll Build
 
-Throughout this article, you'll implement an application that uses social login (with GitHub and Google) and database login. Upon logging in, the application will fetch and render the user's profile details as seen in the screenshots below.
+Throughout this article, you'll implement an application that uses social login (with GitHub and Google) and database login. Upon logging in, the application will fetch and render the user' profile details as seen in the screenshots below.
 
 <!-- Add screenshots grouped together here -->
 
@@ -48,7 +48,7 @@ Throughout this article, you'll implement an application that uses social login 
 In this section, you will setup the application to be used throughout the article. More specifically, you will:
 
 * Create an Auth0 application to represent your Flutter app,
-* Scaffold a new Flutter app,
+* Scaffold a new Flutter app, and
 * Install packages that the app is dependent on.
 
 ### Creating an Auth0 project

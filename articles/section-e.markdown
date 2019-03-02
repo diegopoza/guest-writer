@@ -1,21 +1,21 @@
 ### Handle logouts
 
-In this section, you will learn how to log users out of your application - both out of Auth0 and your client application.
+In this section, you will learn how to log users out of your application - both out of the Auth0 layer and your client application layer.
 
 #### Handle Auth0-layer logouts
 
 Logging users out of your Auth0 application emulates a number of processes from login operation, from launching a logout URL to redirecting users to a logout callback URL. 
 
-As is the case with login, add a logout callback URL to the **Allowed Logout URLs** field in the [**Advanced** tab of your **tenant** settings](https://manage.auth0.com/#/tenant/advanced).
+As is the case with login, add a logout callback URL to the **Allowed Logout URLs** field in the [**Advanced** tab of your **Tenant** settings](https://manage.auth0.com/#/tenant/advanced).
 
-After setting a logout callback URL in your Auth0 application, you need to modify the `/manifest` and `/plist` files as seen in the [Login]() section to allow deeplinking of the logout callback URL into your application.
+After setting a logout callback URL in your Auth0 application, modify the `/android/app/src/main/AndroidManifest.xml` and <!--For iOS, `/plist`--> files to allow deeplinking of the logout callback URL into your application.
 
-To do this on the Android end, add a new data tag within the `<intent-filter>` tag of your `/android/app/src/main/AndroidManifest.xml` file as seen in the code below:
+To do this on the Android end, add a new `<data>` tag within the `<intent-filter>` tag of your `/android/app/src/main/AndroidManifest.xml` file as seen in the code below:
 
 ```xml
 <manifest ...>
   <!-- ... other tags -->
-  <application ...>
+  <application ...> 
     <activity ...>
     <!-- ... other tags -->
     <intent-filter android:autoVerify="true">
@@ -44,13 +44,13 @@ onPressed: () {
 }
 ```
 
-The code above launches the logout URL witha `returnTo` parameter which expects your logout callback URL in an [encoded form](https://www.urlencoder.org/). Although logged out of Auth0, the profile screen is rerendered. In the next section, [Handling application-layer logouts](), you will learn how to fix this.
+The code above launches the logout URL with a `returnTo` parameter which expects your logout callback URL in an [encoded form](https://www.urlencoder.org/). Although logged out of Auth0, the profile screen is rerendered. In the next section, [Handling application-layer logouts](), you will learn how to fix this.
 
 #### Handling application-layer logouts
 
 Logging users out of the application layer involves deleting the persisted refresh token.
 
-To do this, start by appending the `deleteRefreshToken()` function below to the `/lib/utils/persistence.dart` file:
+To do this, start by appending the `deleteRefreshToken()` function below to `/lib/utils/persistence.dart`:
 
 ```dart
 Future<Null> deleteRefreshToken() async {
@@ -59,7 +59,7 @@ Future<Null> deleteRefreshToken() async {
 }
 ```
 
-Then, append the code snippet below in the `onPressed()` function of the logout button in `/lib/screens/profile.dart` file:
+Then, append the code snippet below in the `onPressed()` function of the logout button in `/lib/screens/profile.dart`:
 
 ```dart
 dispatch(GetReceivedURLAction());
@@ -89,12 +89,9 @@ Action action,
                     dispatch(LogoutAction());
                 }
             },
-            onError: (err) {
-                receivedLink = err;
-            },
-            onDone: () {
-            _sub.cancel();
-            },
+            // onError() function
+            // onDone() function
+
         );
         } on PlatformException {}
     }
@@ -107,7 +104,7 @@ Action action,
 }
 ```
 
-Still in the `/lib/rebloc/bloc/auth_bloc.dart` file, add the code below to the `reducer()` function to finish the login process:
+Still in the `/lib/rebloc/bloc/auth_bloc.dart` file, add the code below to the `reducer()` function to complete the logout process:
 
 ```dart
 if (action is LogoutAction) {
@@ -115,7 +112,7 @@ if (action is LogoutAction) {
 }
 ```
 
-The code above resets the application to its initial state - with user logged out, refresh token absent, and a login prompt rendered to the user.
+The code above resets the application to its initial state - with the user logged out, refresh token absent, and a login prompt rendered to the user.
 
 After that, you're done securing your Flutter application with Auth0! You can now run your app using the `flutter run` command.
 

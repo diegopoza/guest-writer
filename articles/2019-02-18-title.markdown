@@ -8,9 +8,16 @@ author:
   url: "roscoefab"
   mail: "dejifab@outlook.com"
   avatar: "https://twitter.com/roscoefab/profile_image?size=original"
+tags:
+- flutter
+- rebloc
+- auth0
+- mobile
+- pkce
+- authorizations
 related:
 - 2017-11-15-an-example-of-all-possible-elements
----
+--- 
 
 **TL;DR:** [Flutter](https://flutter.io/) is Google's cross-plaform SDK created to help developers build expressive and beautiful mobile applications. In this article, you will learn how to build and secure a Flutter application with Auth0 using the Authorization Code Grant Flow with PKCE. You can checkout the code developed throughout the article [in this GitHub repository](https://github.com/thedejifab/flutter_auth0).
 

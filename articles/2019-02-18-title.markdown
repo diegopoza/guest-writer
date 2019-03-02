@@ -155,6 +155,7 @@ Before getting started, create the following directories and files in addition t
 └── main.dart
 ```
 
+## Sectioning (Remove this in live article)
 <!-- SECTION A HERE -->
 
 <!-- SECTION B HERE -->

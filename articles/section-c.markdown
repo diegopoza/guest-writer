@@ -2,15 +2,13 @@
 
 As highlighted in the [What You'll Build]() section, the application built throughout this article implements social login with Google and GitHub, in addition to database login. 
 
-However, Google has a bit of history with embedded browsers - you simply cannot make OAuth authorization requests to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint leaves mobile developers wth two major alternatives; using AppAuth or Chrome Custom Tabs. With AppAuth yet to have a solid Flutter implementation, the latter provides a suitable approach to making requests.
+However, Google has a bit of history with embedded browsers - you simply cannot make OAuth authorization requests to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint leaves mobile developers wth two major alternatives - using AppAuth or Chrome Custom Tabs. With AppAuth yet to have a solid Flutter implementation, the latter provides a suitable approach to making requests.
 
 > **Note:** Although beyond the scope of this article, in using ChromeCustomTabs, you are advised to provide some form of fallback mechanism as ChromeCustomTabs is largely dependent on the user's installation of Chrome browser.
 
 #### Launch the authorization URL within your app
 
 To launch the authorization URL, start by creating a `launchURL()` function that takes in a URL and opens the URL using ChromeCustomTabs. To do this, add the following code to your `/lib/utils/auth_utils.dart` file:
-
-<!-- You're yet to list chrome custom tabs as part of the dependencies -->
 
 ```dart
 import 'package:flutter/material.dart';
@@ -40,13 +38,13 @@ void launchURL(BuildContext context, {String url}) async {
 }
 ```
 
-To use the `launchURL()` function, replace the code in the `onPressed()` function of the login button in `/lib/screens/login.dart` file with the code below and add necessary imports:
+To use the `launchURL()` function, replace the code in the `onPressed()` function of the login button in `/lib/screens/login.dart` with the code below and add necessary imports:
 
 ```dart
 launchURL(context, url: getAuthorizationUrl());
 ```
 
-The code above launches the constructed authorization URL from `/lib/utils/url_utils.dart` using ChromeCustomTabs.
+The snippet above launches the constructed authorization URL from `/lib/utils/url_utils.dart` using ChromeCustomTabs.
 
 #### Retrieve the authorization code
 
@@ -54,9 +52,9 @@ In this section, you will setup your app for deep-linking from an authorization 
 
 ##### Architect your login screen
 
-In using ReBLOC, **Actions** are operations that you want to perform, **States** represent possible appearances of your app's screen, **BLoCs** contain logic code, and a **Store** holds the whole state of an application.
+In using ReBLOC, **actions** represent operations that you want to perform, **states** represent possible appearances of your app's screen, **blocs** contain logic code, and a **store** serves as the repository for the states and operations of an application.
 
-Firstly, define your models by adding the code snippet below to the `lib/rebloc/models/models.dart` file:
+Firstly, define your data models by adding the code snippet below to the `lib/rebloc/models.dart` file:
 
 ```dart
 /// Authentication object model.
@@ -82,7 +80,7 @@ class User {
 }
 ```
 
-After defining your models, define all actions performable in the app by adding the code below to the `/lib/rebloc/actions/actions.dart` file:
+After defining your models, define all actions performable in the app by adding the code below to the `/lib/rebloc/actions.dart` file:
 
 ```dart
 import 'package:rebloc/rebloc.dart';
@@ -192,11 +190,11 @@ class AppState {
 }
 ```
 
-Later in the article, the `/lib/rebloc/state/app_state.dart` file will be modified to hold newly added states.
+Later in the article, the `AppState` class will be modified to hold newly added states.
 
-In ReBLOC, a store is required to hold the application state, and blocs which contain logic implementations. The store is then passed down the widget tree by using a `StoreProvider` widget to make the states and blocs accessible to all parts of the app.
+In ReBLOC, making the states and blocs accessible to all parts of the app is achieved by passing the store down the widget tree using a `StoreProvider` widget.
 
-Before creating your store, create a `LoginBloc` in the file `/lib/rebloc/bloc/auth_bloc.dart` by extending the `SimpleBloc` class provided by the `rebloc` package, and override the `middleware()` and `reducers()` functions as seen below:
+Before creating your store, create a class `LoginBloc` in the file `/lib/rebloc/bloc/auth_bloc.dart` by extending the `SimpleBloc` class provided by the `rebloc` package, and override the `middleware()` and `reducer()` functions as seen in the snippet below:
 
 ```dart
 import 'dart:async';
@@ -221,7 +219,7 @@ class AuthBloc extends SimpleBloc<AppState> {
 }
 ```
 
-Middlewares in ReBLOC are the logical operations performed after an action has been triggered, while Reducers respond to actions that are intended to change the application's appearance.
+Middlewares in ReBLOC are the logical operations performed after an action has been triggered, while reducers are [pure functions](link_here) that respond to actions that are intended to change the application's appearance.
 
 Finally, create a store by adding the code below to the `/lib/rebloc/store.dart` file:
 
@@ -238,7 +236,7 @@ final appStore = Store<AppState>(
 );
 ```
 
-To pass the store down the widget tree, wrap the `MyApp()` widget in the `main()` function of the `/lib/main.dart` file with a `StoreProvider` widget as seen in the code below, and add the necessary imports:
+To pass the store down the widget tree, wrap the `MyApp` widget in the `main()` function of the `/lib/main.dart` file with a `StoreProvider` widget as seen in the code below, and add the necessary imports:
 
 ```dart
 void main() {
@@ -276,6 +274,8 @@ On the Android end, add an intent filter within the `<activity>` tag of your `/a
 ```
 
 <!-- Then, add the following .... on the iOS end. (not tested yet. Leave empty for now) -->
+
+In the above code snippets, a combination of the host and scheme seperated by a colon will produce the callback URL previously defined. While this doesn't have to be the case, the callback URL must at least start with the said combination to work as expected.
 
 #### Listen to the received URL
 
@@ -335,7 +335,7 @@ AppState reducer(AppState state, Action action) {
 }
 ```
 
-The code above sets up a subscription that listens to the `getLinksStream()` stream from  the `uni_links` package. When the link changes after authorization (as expected), the method checks if the `receivedLink` parameter starts with your specified callback URL (`myapp://logincallback` in this case). It then parses the received link to check for whether an error or a code was returned by calling the `parseUrlToValue()` function on the `receivedLink` parameter before triggering a `LoginAction`. Upon triggering the `LoginAction`, the application state is update in the `reducer()` function.
+The code above sets up a subscription that listens to the `getLinksStream()` stream from the `uni_links` package. When the link changes after authorization (as expected), the method checks if the `receivedLink` parameter starts with your specified callback URL (`myapp://logincallback` in this case). It then parses the received link to check for whether an error or a code was returned by calling the `parseUrlToValue()` function on the link before triggering the `LoginAction`. Upon triggering the action, the application state is updated in the `reducer()` function.
 
 Create the `parseUrlToValue()` function by appending the code below to your `/lib/rebloc/bloc/auth_bloc.dart` file, and add the necessary imports:
 
@@ -370,43 +370,37 @@ AuthModel parseUrlToValue(String receivedURL) {
 }
 ```
 
-The last step in retrieving the user's authorization is to dispatch/trigger the action to start listening to the stream immediately the authorization URL is launched. To do this, wrap the scaffold widget in `/lib/screens/login.dart` with a `DispatchSubscriber` widget, and modify the `onPressed()` function of the login button as shown in the code below:
+The last step in retrieving the user's authorization is to dispatch/trigger the action to start listening to the stream immediately the authorization URL is launched. To do this, wrap the scaffold in `/lib/screens/login.dart` with a `DispatchSubscriber` widget, and modify the `onPressed()` function of the login button as shown in the code below:
 
 ```dart
 @override
 Widget build(BuildContext context) {
-    return DispatchSubscriber<AppState>(
-      builder: (context, dispatch) {
-        return Scaffold(
-          appBar: AppBar(title: Text("Welcome")),
-          body: Container(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  RaisedButton(
-                    onPressed: () {
-                      launchURL(
-                        context,
-                        url: getAuthorizationUrl(),
-                      );
-                      dispatch(GetReceivedURLAction());
-                    },
-                    child: Text("Click to Login"),
-                  ),
-                  Text(loginError ?? ""),
-                ],
-              ),
+  return DispatchSubscriber<AppState>(
+    builder: (context, dispatch) {
+      return Scaffold(
+        appBar: AppBar(title: Text("Welcome")),
+        body: Container(
+          //widget tree
+            RaisedButton(
+              onPressed: () {
+                launchURL(
+                  context,
+                  url: getAuthorizationUrl(),
+                );
+                dispatch(GetReceivedURLAction());
+              },
+              child: Text("Click to Login"),
             ),
-          ),
-        );
-      },
-    );
+        //widget tree
+        ),
+      );
+    },
+  );
 }
 ```
 
-A `DispatchSubscriber` widget in ReBLOC is used when you want to dispatch an action without the need for a view model. For instances that require both actions dispatcher and a view model, the `ViewModelSubscriber` widget is used instead.
+A `DispatchSubscriber` widget in ReBLOC is used when you want to dispatch an action without the need for a view model. For instances that require an action dispatcher and a view model, the `ViewModelSubscriber` widget is used instead.
 
-In the `onPressed()` function in the code above, the `dispatch()` function triggers the `GetReceivedURLAction()` which in turn starts the subscription stream to detect new URLs deeplinked into the application.
+In the `onPressed()` function in the code above, the `dispatch()` function triggers the `GetReceivedURLAction` which in turn starts the subscription stream to detect new URLs deeplinked into the application.
 
 > **Note:** If you're interested in seeing the values returned at any point within your app, you can log the values with print statements.

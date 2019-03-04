@@ -19,7 +19,7 @@ related:
 - 2017-11-15-an-example-of-all-possible-elements
 --- 
 
-**TL;DR:** [Flutter](https://flutter.io/) is Google's cross-plaform SDK created to help developers build expressive and beautiful mobile applications. In this article, you will learn how to build and secure a Flutter application with Auth0 using the Authorization Code Grant Flow with PKCE. You can checkout the code developed throughout the article [in this GitHub repository](https://github.com/thedejifab/flutter_auth0).
+**TL;DR:** [Flutter](https://flutter.io/) is Google's cross-platform SDK created to help developers build expressive and beautiful mobile applications. In this article, you will learn how to build and secure a Flutter application with Auth0 using the Authorization Code Grant Flow with PKCE. You can checkout the code developed throughout the article [in this GitHub repository](https://github.com/thedejifab/flutter_auth0).
 
 ## Prerequisites
 
@@ -53,7 +53,7 @@ Throughout this article, you'll implement an application that uses social login 
 
 ## Project Setup
 
-In this section, you will setup the application to be used throughout the article. More specifically, you will:
+In this section, you will set up the application to be used throughout the article. More specifically, you will:
 
 * Create an Auth0 application to represent your Flutter app,
 * Scaffold a new Flutter app, and
@@ -65,7 +65,7 @@ Auth0 is an Identity-as-a-Service (IDaaS) platform that provides enterprises wit
 
 To integrate Auth0 into your Flutter app, you need an Auth0 account. If you have an existing account, you can use it. If you don't, [click here to create one](https://auth0.com/signup).
 
-After creating an Auth0 account, follow the steps below to setup an application:
+After creating an Auth0 account, follow the steps below to set up an application:
 
 * Go to the [**Applications**](https://manage.auth0.com/#/applications) section of your dashboard
 * Click on the [**Create Application**](https://manage.auth0.com/#/applications/create) button.
@@ -86,7 +86,7 @@ To facilitate the process of creating a new Flutter project you are going to use
 flutter create flutter_app
 ```
 
-The CLI tool generates a template project within a couple of seconds to get you started. The tool requires internet connection to download dependencies during project creation, except an `--offline` option is passed to the `create` command to defer the downloading of dependencies. After project generation, you can now open the project in your preferred IDE.
+The CLI tool generates a template project within a couple of seconds to get you started. The tool requires an internet connection to download dependencies during project creation, except an `--offline` option is passed to the `create` command to defer the downloading of dependencies. After project generation, you can now open the project in your preferred IDE.
 
 ### Installing dependencies
 
@@ -124,7 +124,7 @@ In this section, you will learn how to authorize users, fetch user details, and 
   * Retrieve the authorization code.
 * Access APIs after authorization;
   * Exchange authorization code for access tokens,
-  * Fetch user profile with access token,
+  * Fetch user profile with the access token,
   * Persist refresh tokens for subsequent access.
 * Handle logouts.
   * Handle Auth0-layer logouts,
@@ -326,7 +326,7 @@ String codeChallenge;
 
 The code snippet above declares parameters necessary for the creation of an authorization URL. The `REDIRECT_URI` variable specifies where the user will be redirected to after authorization. The value of `REDIRECT_URI` must match with one of the **Allowed Callback URLs** defined in the **Settings** tab of your Auth0 application.
 
-On the other hand, the `SCOPES` variable specifies the kind of access required by your application. The `offline_access` option ensures that a `refresh_token` is retrieved alongside the `access_token` while exchanging the authorization code for an access token. As you will see in latter parts of this article, the `refresh_token` eliminates the need for unneccessary repetition of the authorization process.
+On the other hand, the `SCOPES` variable specifies the kind of access required by your application. The `offline_access` option ensures that a `refresh_token` is retrieved alongside the `access_token` while exchanging the authorization code for an access token. As you will see in the latter parts of this article, the `refresh_token` eliminates the need for unnecessary repetition of the authorization process.
 
 > **Note:** For the <AUTH0_DOMAIN> and <CLIENT_ID> placeholders, replace them with the **Domain** and **Client ID** fields found in the **Settings** tab of your Auth0 application.
 
@@ -386,7 +386,7 @@ The `getAuthorizationUrl()` function initializes the `codeVerifier` and `codeCha
 
 As highlighted in the [What You'll Build](#what-youll-build) section, the application built throughout this article implements social login with Google and GitHub, in addition to database login. 
 
-However, Google has a bit of history with embedded browsers - you simply cannot make OAuth authorization requests to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint leaves mobile developers wth two major alternatives - using AppAuth or Chrome Custom Tabs. With AppAuth yet to have a solid Flutter implementation, the latter provides a suitable approach to making requests.
+However, Google has a bit of history with embedded browsers - you simply cannot make OAuth authorization requests to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint leaves mobile developers with two major alternatives - using AppAuth or Chrome Custom Tabs. With AppAuth yet to have a solid Flutter implementation, the latter provides a suitable approach to making requests.
 
 > **Note:** Although beyond the scope of this article, in using ChromeCustomTabs, you are advised to provide some form of fallback mechanism as ChromeCustomTabs is largely dependent on the user's installation of Chrome browser.
 
@@ -432,7 +432,7 @@ The snippet above launches the constructed authorization URL from `/lib/utils/ur
 
 #### Retrieve the authorization code
 
-In this section, you will setup your app for deep-linking from an authorization URL, listen to the received link via a stream, and parse the received link to useful data. You will also learn how to use ReBLOC architecture to achieve the aforementioned processes.
+In this section, you will set up your app for deep-linking from an authorization URL, listen to the received link via a stream, and parse the received link to useful data. You will also learn how to use ReBLOC architecture to achieve the aforementioned processes.
 
 ##### Architect your login screen
 
@@ -476,7 +476,7 @@ import './models.dart';
 class OnInitAction extends Action {}
 
 // AUTH ACTIONS
-/// To get the URL received during deeplinking
+/// To get the URL received during deep linking
 class GetReceivedURLAction extends Action {}
 
 /// To log user in with [authCode]
@@ -631,9 +631,9 @@ void main() {
 }
 ```
 
-##### Set up your app for deeplinking
+##### Set up your app for deep linking
 
-Deeplinking in Flutter requires having to do some work on the native Android and iOS platforms. 
+Deep linking in Flutter requires having to do some work on the native Android and iOS platforms. 
 
 On the Android end, add an intent filter within the `<activity>` tag of your `/android/app/src/main/AndroidManifest.xml` as seen in the code below:
 
@@ -663,7 +663,7 @@ In the above code snippets, a combination of the host and scheme seperated by a 
 
 #### Listen to the received URL
 
-To listen to the URL received during deeplinking, modify the `middleware()` and `reducer()` functions in the `/lib/rebloc/bloc/auth_bloc.dart` to setup a listening stream and update the app state respectively, as seen in the code snippet below:
+To listen to the URL received during deep linking, modify the `middleware()` and `reducer()` functions in the `/lib/rebloc/bloc/auth_bloc.dart` to set up a listening stream and update the app state respectively, as seen in the code snippet below:
 
 ```dart
 @override
@@ -785,7 +785,7 @@ Widget build(BuildContext context) {
 
 A `DispatchSubscriber` widget in ReBLOC is used when you want to dispatch an action without the need for a view model. For instances that require an action dispatcher and a view model, the `ViewModelSubscriber` widget is used instead.
 
-In the `onPressed()` function in the code above, the `dispatch()` function triggers the `GetReceivedURLAction` which in turn starts the subscription stream to detect new URLs deeplinked into the application.
+In the `onPressed()` function in the code above, the `dispatch()` function triggers the `GetReceivedURLAction` which in turn starts the subscription stream to detect new URLs deep-linked into the application.
 
 > **Note:** If you're interested in seeing the values returned at any point within your app, you can log the values with print statements.
 
@@ -796,7 +796,7 @@ In this section, you will learn how to use the user' authorization code to get a
 
 ##### Architect your profile screen
 
-Firstly, start by defining your profile state which accounts for values with possibility of changing in the profile screen. To do this, add the code snippet below to the `/lib/rebloc/state/profile_state.dart` file:
+Firstly, start by defining your profile state which accounts for values with the possibility of changing in the profile screen. To do this, add the code snippet below to the `/lib/rebloc/state/profile_state.dart` file:
 
 ```dart 
 import '../models.dart';
@@ -915,18 +915,18 @@ Widget build(BuildContext context) {
 }
 ```
 
-In the code above, on initial build of the profile screen, the application checks if the code received as a parameter to the profile screen is an authorization code or a refresh token, and dispatches necessary actions based on the check. This is done using a `FirstBuildDispatcher` widget from the `rebloc` package. Also in the `build()` method, the application checks if user details have been retrieved. If retrieved, the details will be accessed from the view model and displayed, otherwise a loading indicator is rendered.
+In the code above, on an initial build of the profile screen, the application checks if the code received as a parameter to the profile screen is an authorization code or a refresh token and dispatches necessary actions based on the check. This is done using the `FirstBuildDispatcher` widget from the `rebloc` package. Also in the `build()` method, the application checks if user details have been retrieved. If retrieved, the details will be accessed from the view model and displayed, otherwise a loading indicator is rendered.
 
 #### Exchange authorization code for access tokens
 
 As seen in the diagram in the [OAuth 2.0 Flow and Mobile Applications](#oauth-20-flow-and-mobile-applications) section, when securing apps with Auth0 using the Authorization Code Grant Flow with PKCE, a request is made to get the access token after the user authorizes your application.
 
-As seen in the [documentations](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce#4-exchange-the-authorization-code-for-an-access-token), the request is a simple POST request that takes in `grant_type`, `client_id`, `code_verifier`, `code`, and `redirect_uri` parameters, then returns the response containing the `access_token` and `refresh_token` parameters.
+As seen in the [documentation](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce#4-exchange-the-authorization-code-for-an-access-token), the request is a simple POST request that takes in `grant_type`, `client_id`, `code_verifier`, `code`, and `redirect_uri` parameters, it then returns the response containing the `access_token` and `refresh_token` parameters.
 
 To make this request, append the code snippet below to the `/lib/rebloc/bloc/profile_bloc.dart` file, and import the `http` package `as http`:
 
 ```dart
-/// To get the access token and refresh token using authorization code
+/// To get the access token and refresh token using the authorization code
 Future<String> getAccessFromAuthCode(String authCode) async {
   String accessToken = "";
   String refreshToken = "";
@@ -970,12 +970,12 @@ Then, import `/lib/utils/persistence.dart` in `/lib/rebloc/bloc/profile_bloc.dar
 
 > **Note:** In building applications for production, it is generally considered unsafe to plainly persist sensitive values such as access or refresh tokens with shared preferences. A minimal security step is to at least obfuscate the token with an algorithm before persisting.
 
-#### Fetch user profile with access token
+#### Fetch user profile with the access token
 
 After getting the access token, it can be used to make API calls. To get the user details using the access token, append the code below to `/lib/rebloc/bloc/profile_bloc.dart`:
 
 ```dart
-/// To get the user details from userinfo API endpoint of identity provider
+/// To get the user details from userinfo API of the identity provider
 Future<User> getUserDetails(String accessToken) async {
   User user;
   var url = "https://$DOMAIN/userinfo";
@@ -1036,7 +1036,7 @@ AppState reducer(AppState state, Action action) {
 
 The `middleware()` function in the code above retrieves the access token using the authorization code whenever `GetTokensFromAuthAction` is dispatched. It then sends the access token to a `showUserDetails()` function which gets the user' details and displays the retrieved details by dispatching the `DisplayDetailsAction` action. Upon triggering the `DisplayDetailsAction`, the application state is updated with the user' details in the `reducer()` function.
 
-To ease the process of wiring the login and profile screens together, create `MainBloc` and `MainState` classes. The function of the `MainBloc` class is to perform initialzation actions such as checking if the user was previously logged in (as you'll see in the [Using refresh tokens for subsequent access](#using-refresh-tokens-for-subsequent-access) section). On the other hand, the function of the `MainState` class is to render the profile or login screen based on whether or not the user is logged in.
+To ease the process of wiring the login and profile screens together, create `MainBloc` and `MainState` classes. The function of the `MainBloc` class is to perform initialization actions such as checking if the user was previously logged in (as you'll see in the [Using refresh tokens for subsequent access](#using-refresh-tokens-for-subsequent-access) section). On the other hand, the function of the `MainState` class is to render the profile or login screen based on whether or not the user is logged in.
 
 To create a `MainState` class, add the code snippet below to the `/lib/rebloc/bloc/main_bloc.dart` file:
 
@@ -1153,7 +1153,7 @@ The code above replaces `Login` with `MyHomePage` as the initial page of the app
 
 #### Using refresh tokens for subsequent access
 
-For most modern day applications, it is widely considered a bad UX practice to make users have to login anew everytime they open an application. A refresh token allows you to emulate the practice of preserving user' login until the user decides to voluntarily logout in the application being developed in this article. The refresh token which is persisted using shared preferences as seen in the [Exchange authorization code for access tokens](#exchange-authorization-code-for-access-tokens) section can be subsequently retrieved and used in getting a new access token which is in turn used in making API calls.
+For most modern-day applications, it is widely considered a bad UX practice to make users have to login anew every time they open an application. A refresh token allows you to emulate the practice of preserving user' login until the user decides to voluntarily logout in the application being developed in this article. The refresh token which is persisted using shared preferences as seen in the [Exchange authorization code for access tokens](#exchange-authorization-code-for-access-tokens) section can be subsequently retrieved and used in getting a new access token which is in turn used in making API calls.
 
 To use refresh tokens to retrieve access tokens, make the following modifications to the files below:
 
@@ -1310,7 +1310,7 @@ Logging users out of your Auth0 application emulates a number of processes from 
 
 As is the case with login, add a logout callback URL to the **Allowed Logout URLs** field in the [**Advanced** tab of your **Tenant** settings](https://manage.auth0.com/#/tenant/advanced).
 
-After setting a logout callback URL in your Auth0 application, modify the `/android/app/src/main/AndroidManifest.xml` and <!--For iOS, `/plist`--> files to allow deeplinking of the logout callback URL into your application.
+After setting a logout callback URL in your Auth0 application, modify the `/android/app/src/main/AndroidManifest.xml` and <!--For iOS, `/plist`--> files to allow deep linking of the logout callback URL into your application.
 
 To do this on the Android end, add a new `<data>` tag within the `<intent-filter>` tag of your `/android/app/src/main/AndroidManifest.xml` file as seen in the code below:
 
@@ -1423,7 +1423,7 @@ After that, you're done securing your Flutter application with Auth0! You can no
 
 In this post, you learned how to secure a Flutter application with Auth0 using the authorization code grant flow with PKCE, and the basics of state management with ReBLOC.
 
-Althought Dart's default HTTP client library was used in making network requests throughout this article, the [Dio package](https://pub.dartlang.org/packages/dio) is a robust alternative, providing you with features such as interceptors and ability to handle request timeouts.
+Although Dart's default HTTP client library was used in making network requests throughout this article, the [Dio package](https://pub.dartlang.org/packages/dio) is a robust alternative, providing you with features such as interceptors and ability to handle request timeouts.
 
 Finally, while its usage is limited to fetching user details in the course of this article, the access token should be kept alive throughout the lifecycle of large applications where it's needed to make frequent API calls.
 

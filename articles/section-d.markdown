@@ -251,7 +251,7 @@ To ease the process of wiring the login and profile screens together, create `Ma
 To create a `MainBloc` class, add the code snippet below to the `/lib/rebloc/bloc/main_bloc.dart` file:
 
 ```dart
-import '../models/models.dart';
+import '../models.dart';
 
 class MainState {
   final ScreenType screenType;
@@ -284,8 +284,8 @@ To create a `MainBloc`, add the code snippet below to the `/lib/rebloc/bloc/main
 ```dart
 import 'dart:async';
 
-import '../actions/actions.dart';
-import '../models/models.dart';
+import '../actions.dart';
+import '../models.dart';
 import '../state/app_state.dart';
 import 'package:rebloc/rebloc.dart';
 
@@ -367,7 +367,6 @@ For most modern day applications, it is widely considered a bad UX practice to m
 
 To use refresh tokens to retrieve access tokens, make the following modifications to the files below:
 
-<!-- /token or /oauth/token endpoint? -->
 Append the code below to `/lib/rebloc/bloc/profile_bloc.dart` to make a request to the `/oauth/token` endpoint with a `refresh_token` parameter sent:
 
 ```dart

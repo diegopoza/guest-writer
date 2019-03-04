@@ -48,7 +48,7 @@ OAuth 2.0 provides [different flows](https://auth0.com/docs/api-auth/which-oauth
 
 Throughout this article, you'll implement an application that uses social login (with GitHub and Google) and database login. Upon logging in, the application will fetch and render the user' profile details as seen in the screenshots below.
 
-<!-- Add screenshots grouped together here -->
+<p><img src="images/prompt.png" width="300px" height="auto"/> <img src="images/login.png" width="300px" height="auto"/> <img src="images/profile.png" width="300px" height="auto"/></p>
 
 ## Project Setup
 
@@ -155,7 +155,6 @@ Before getting started, create the following directories and files in addition t
 └── main.dart
 ```
 
-## Sectioning (Remove this in live article)
 <!-- SECTION A HERE -->
 
 <!-- SECTION B HERE -->

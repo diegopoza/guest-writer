@@ -84,7 +84,7 @@ After defining your models, define all actions performable in the app by adding 
 
 ```dart
 import 'package:rebloc/rebloc.dart';
-import '../models/models.dart';
+import '../models.dart';
 
 // MAIN ACTIONS
 /// To initialize app and check if user
@@ -139,7 +139,7 @@ class GetAccessFromRefreshTokenAction extends Action {
 After specifying your app actions, define the state of your login screen by adding the code snippet below to `/lib/rebloc/state/auth_state.dart`:
 
 ```dart
-import '../models/models.dart';
+import '../models.dart';
 
 class AuthState {
   final AuthModel authModel;
@@ -219,7 +219,7 @@ class AuthBloc extends SimpleBloc<AppState> {
 }
 ```
 
-Middlewares in ReBLOC are the logical operations performed after an action has been triggered, while reducers are [pure functions](link_here) that respond to actions that are intended to change the application's appearance.
+Middlewares in ReBLOC are the logical operations performed after an action has been triggered, while reducers are [pure functions](https://medium.com/javascript-scene/master-the-javascript-interview-what-is-a-pure-function-d1c076bec976) that respond to actions that are intended to change the application's appearance.
 
 Finally, create a store by adding the code below to the `/lib/rebloc/store.dart` file:
 

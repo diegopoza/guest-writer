@@ -31,7 +31,8 @@ You also need to have the installations outlined below on your machine.
 * A Development Environment, one of:
   * [Android Studio](https://developer.android.com/studio), version 3.0 or later, or
   * [IntelliJ IDEA](https://www.jetbrains.com/idea/download/), version 2017.1 or later, or
-  * Visual Studio Code. 
+  * Visual Studio Code.
+  
   with Dart and Flutter plugins installed.
 
 > **Note:** Additionally, if you have a knack for well-architected code, you'll find this very enjoyable.
@@ -89,7 +90,7 @@ The CLI tool generates a template project within a couple of seconds to get you 
 
 ### Installing dependencies
 
-As you will see in the course of the article, the project requires six main dependencies - the [`rebloc`](https://pub.dartlang.org/packages/rebloc) package to which enables using ReBLOC for state management, the [`http`](https://pub.dartlang.org/packages/http) package for performing network requests, the [`crypto`](https://pub.dartlang.org/packages/crypto) package for generating secure codes used in the authorization process, the [`flutter_custom_tabs`](https://pub.dartlang.org/packages/flutter_custom_tabs) package for launching URLs, the [`shared_preferences`](https://pub.dartlang.org/packages/shared_preferences) package for persistence, and the [`uni_links`](https://pub.dartlang.org/packages/uni_links) package which affords the ability to deep-link from web URLs into a Flutter application.
+As you will see in the course of the article, the project requires six main dependencies - [`rebloc`](https://pub.dartlang.org/packages/rebloc) which enables using ReBLOC for state management, [`http`](https://pub.dartlang.org/packages/http) for performing network requests, [`crypto`](https://pub.dartlang.org/packages/crypto) for generating cryptographically secure codes used in the authorization process, [`flutter_custom_tabs`](https://pub.dartlang.org/packages/flutter_custom_tabs) for launching URLs, [`shared_preferences`](https://pub.dartlang.org/packages/shared_preferences) for persistence, and [`uni_links`](https://pub.dartlang.org/packages/uni_links) which affords the ability to deep-link from web URLs into a Flutter application.
 
 With the project open in your IDE, navigate to your `/pubspec.yaml` file to add the dependencies by modifying the `dependencies` section as seen below:
 
@@ -158,7 +159,7 @@ Before getting started, create the following directories and files in addition t
 <!-- SECTION A HERE -->
 ### Create a user interface
 
-As seen in the [What You'll Build](#what-you'll-build) section, the application contains a login screen and a profile screen, with the launched authorization URL being the linkage between both screens.
+As seen in the [What You'll Build](#what-youll-build) section, the application contains a login screen and a profile screen, with the launched authorization URL being the linkage between both screens.
 
 #### Create a login screen
 
@@ -383,7 +384,7 @@ The `getAuthorizationUrl()` function initializes the `codeVerifier` and `codeCha
 <!-- SECTION C HERE -->
 ### Get the user's authorization
 
-As highlighted in the [What You'll Build](#what-you'll-build) section, the application built throughout this article implements social login with Google and GitHub, in addition to database login. 
+As highlighted in the [What You'll Build](#what-youll-build) section, the application built throughout this article implements social login with Google and GitHub, in addition to database login. 
 
 However, Google has a bit of history with embedded browsers - you simply cannot make OAuth authorization requests to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint leaves mobile developers wth two major alternatives - using AppAuth or Chrome Custom Tabs. With AppAuth yet to have a solid Flutter implementation, the latter provides a suitable approach to making requests.
 
@@ -467,7 +468,7 @@ After defining your models, define all actions performable in the app by adding 
 
 ```dart
 import 'package:rebloc/rebloc.dart';
-import '../models.dart';
+import './models.dart';
 
 // MAIN ACTIONS
 /// To initialize app and check if user
@@ -551,7 +552,7 @@ class AuthState {
 Then, create the application's whole state which holds all other states in the application by adding the snippet below to your `/lib/rebloc/state/app_state.dart` file:
 
 ```dart
-import '../state/auth_state.dart';
+import './auth_state.dart';
 
 class AppState {
   final AuthState authState;
@@ -624,7 +625,7 @@ To pass the store down the widget tree, wrap the `MyApp` widget in the `main()` 
 ```dart
 void main() {
   runApp(StoreProvider<AppState>(
-    store: appStore,
+    store: appStore, //appStore from store.dart
     child: MyApp(),
   ));
 }
@@ -826,8 +827,6 @@ class ProfileState {
 Then, add the profile state to the application state by modifying the `/lib/rebloc/state/app_state.dart` file as seen in the code below:
 
 ```dart 
-import '../models.dart';
-
 class AppState {
   final AuthState authState;
   final ProfileState profileState;
@@ -850,9 +849,9 @@ class AppState {
 }
 ```
 
-After appending changes to the state classes, create a `ProfileBloc` class in `/lib/rebloc/bloc/profile_bloc.dart` by extending the `SimpleBloc` class as seen in the [Architect your login screen](#architect-your-login-screen) section. Then add the `ProfileBloc()` object to the list of blocs in `/lib/rebloc/store.dart`. 
+After appending changes to the state classes, create a `ProfileBloc` class in `/lib/rebloc/bloc/profile_bloc.dart` by extending the `SimpleBloc` class as seen in creating the `AuthBloc` class in [Architect your login screen](#architect-your-login-screen). Then, add the `ProfileBloc()` object to the list of blocs in `/lib/rebloc/store.dart`. 
 
-Finally, modify the `build()` method in your `/lib/screens/profile.dart` file in a bid to replace the initial dummy values with actual implementations as seen in the code below, and add necessary imports:
+Finally, add a `bool isAuthCode` parameter to your `/lib/screens/profile.dart` file and update its constructors (the essence of this addition is seen in [Using refresh tokens for subsequent access](#using-refresh-tokens-for-subsequent-access)). Then, modify its `build()` method in a bid to replace the initial dummy values with actual implementations as seen in the code below, and add necessary imports:
 
 ```dart
 @override
@@ -916,15 +915,15 @@ Widget build(BuildContext context) {
 }
 ```
 
-In the code above, on initial build of the profile screen, the application checks if the code received as a paramter to the profile screen is an authorization code or a refresh token, and dispatches necessary actions based on the check. This is done using a `FirstBuildDispatcher` widget from the `rebloc` package. Also in the `build()` method, the application checks if user details have been retrieved. If retrieved, the details will be accessed from the view model and displayed, otherwise a loading indicator is rendered.
+In the code above, on initial build of the profile screen, the application checks if the code received as a parameter to the profile screen is an authorization code or a refresh token, and dispatches necessary actions based on the check. This is done using a `FirstBuildDispatcher` widget from the `rebloc` package. Also in the `build()` method, the application checks if user details have been retrieved. If retrieved, the details will be accessed from the view model and displayed, otherwise a loading indicator is rendered.
 
 #### Exchange authorization code for access tokens
 
-As seen in the diagram in the [OAuth 2.0 Flow and Mobile Applications](#oauth-2.0-flow-and-mobile-applications) section, when securing apps with Auth0 using the Authorization Code Grant Flow with PKCE, a request is made to get the access token after the user authorizes your application.
+As seen in the diagram in the [OAuth 2.0 Flow and Mobile Applications](#oauth-20-flow-and-mobile-applications) section, when securing apps with Auth0 using the Authorization Code Grant Flow with PKCE, a request is made to get the access token after the user authorizes your application.
 
 As seen in the [documentations](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce#4-exchange-the-authorization-code-for-an-access-token), the request is a simple POST request that takes in `grant_type`, `client_id`, `code_verifier`, `code`, and `redirect_uri` parameters, then returns the response containing the `access_token` and `refresh_token` parameters.
 
-To make this request, append the code snippet below to the `/lib/rebloc/bloc/profile_bloc.dart` file, and add necessary imports:
+To make this request, append the code snippet below to the `/lib/rebloc/bloc/profile_bloc.dart` file, and import the `http` package `as http`:
 
 ```dart
 /// To get the access token and refresh token using authorization code
@@ -976,7 +975,7 @@ Then, import `/lib/utils/persistence.dart` in `/lib/rebloc/bloc/profile_bloc.dar
 After getting the access token, it can be used to make API calls. To get the user details using the access token, append the code below to `/lib/rebloc/bloc/profile_bloc.dart`:
 
 ```dart
-/// To get the user details from userinfo API of identity provider
+/// To get the user details from userinfo API endpoint of identity provider
 Future<User> getUserDetails(String accessToken) async {
   User user;
   var url = "https://$DOMAIN/userinfo";
@@ -1039,7 +1038,7 @@ The `middleware()` function in the code above retrieves the access token using t
 
 To ease the process of wiring the login and profile screens together, create `MainBloc` and `MainState` classes. The function of the `MainBloc` class is to perform initialzation actions such as checking if the user was previously logged in (as you'll see in the [Using refresh tokens for subsequent access](#using-refresh-tokens-for-subsequent-access) section). On the other hand, the function of the `MainState` class is to render the profile or login screen based on whether or not the user is logged in.
 
-To create a `MainBloc` class, add the code snippet below to the `/lib/rebloc/bloc/main_bloc.dart` file:
+To create a `MainState` class, add the code snippet below to the `/lib/rebloc/bloc/main_bloc.dart` file:
 
 ```dart
 import '../models.dart';
@@ -1070,7 +1069,7 @@ class MainState {
 
 The code above creates the `MainState` class with two parameters - a `ScreenType` object that defines whether the user is logged in or not, and a refreshToken for instances where the user was previously logged in.
 
-To create a `MainBloc`, add the code snippet below to the `/lib/rebloc/bloc/main_bloc.dart` file:
+To create a `MainBloc` class, add the code snippet below to the `/lib/rebloc/bloc/main_bloc.dart` file:
 
 ```dart
 import 'dart:async';

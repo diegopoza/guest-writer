@@ -156,13 +156,1276 @@ Before getting started, create the following directories and files in addition t
 ```
 
 <!-- SECTION A HERE -->
+### Create a user interface
+
+As seen in the [What You'll Build](#what-you'll-build) section, the application contains a login screen and a profile screen, with the launched authorization URL being the linkage between both screens.
+
+#### Create a login screen
+
+To create a login screen, add the code below to the `/lib/screens/login.dart` file:
+
+```dart
+import 'package:flutter/material.dart';
+
+class Login extends StatelessWidget {
+  final String loginError;
+
+  const Login({Key key, this.loginError}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Welcome"),
+      ),
+      body: Container(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              RaisedButton(
+                onPressed: () {},
+                child: Text("Click to Login"),
+              ),
+              Text(loginError ?? ""),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+The code above creates a login screen that takes in `loginError` as an optional parameter. As you will see later in the article, `loginError` is displayed when an error is encountered in the authorization process.
+
+#### Create a profile screen
+
+To create a profile screen, add the code snippet below to the `/lib/screens/profile.dart` file:
+
+```dart
+import 'package:flutter/material.dart';
+
+class Profile extends StatelessWidget {
+  final String code;
+
+  const Profile({Key key, this.code}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("User Profile"),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              width: 150,
+              height: 150,
+              decoration: new BoxDecoration(
+                border: Border.all(color: Colors.blue, width: 4.0),
+                shape: BoxShape.circle,
+                image: new DecorationImage(
+                  fit: BoxFit.fill,
+                  image: new NetworkImage(
+                    "https://image.flaticon.com/icons/svg/78/78373.svg", //dummy image URL
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 24.0),
+            Text(
+              'Name: Dummy Name',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18.0),
+            ),
+            SizedBox(height: 24.0),
+            Text(
+              'Nickname: Dummy Nickname',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18.0),
+            ),
+            SizedBox(height: 48.0),
+            RaisedButton(
+              onPressed: () {},
+              child: Text("Click to Logout"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+In a similar fashion to the login screen, the snippet above creates a dummy profile screen that takes in an optional parameter, `code`, which is the authorization code used to retrieve access token, which is subsequently used in accessing the user's profile details.
+
+Finally, clear the boilerplate code in your `/lib/main.dart` file excluding the `MyApp` class and `main()` method. Then, set `Login()` as the value for the `home` attribute. This should leave you with the code below in `/lib/main.dart`:
+
+```dart
+import 'package:flutter/material.dart';
+import './screens/login.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Login(),
+    );
+  }
+}
+```
+
+In the absence of the authorization process, add the code below to the `onPressed` function of the login button in the `/lib/screens/login.dart` file to establish a navigation flow between the login and profile screens:
+
+```dart
+Navigator.push(context, MaterialPageRoute(builder: (context) => Profile()));
+```
+
+On the other hand, add the following code to the `onPressed` function of the logout button in the `/lib/screens/profile.dart` file:
+
+```dart
+Navigator.pop(context);
+```
+
+Add necessary imports and run your app using the `flutter run` command.
 
 <!-- SECTION B HERE -->
+### Setup an authorization URL
+
+User authorization with Auth0 involves redirecting the user to an authorization URL which provides an authorization dialog. After authorization, the user is redirected to a callback URL which contains details about the user' authorization. 
+
+An authorization URL requires parameters including `redirect_uri`, `client_id` and a few other parameters as seen [here](https://auth0.com/docs/protocols/oauth2#authorization-endpoint). Specifically, when using the Authorization Code Grant Flow with PKCE, the `code_challenge` and `code_challenge_method` parameters are required.
+
+To get started with this, add the code below to the file `/lib/utils/url_utils.dart`: 
+
+```dart
+import 'dart:math';
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+
+const String DOMAIN = "<AUTH0_DOMAIN>";
+const String CLIENT_ID = "<CLIENT_ID>";
+const String AUDIENCE = "https://$DOMAIN/api/v2/";
+const String SCOPES = "openid profile email offline_access";
+const String REDIRECT_URI = "myapp://logincallback";
+
+String codeVerifier;
+String codeChallenge;
+```
+
+The code snippet above declares parameters necessary for the creation of an authorization URL. The `REDIRECT_URI` variable specifies where the user will be redirected to after authorization. The value of `REDIRECT_URI` must match with one of the **Allowed Callback URLs** defined in the **Settings** tab of your Auth0 application.
+
+On the other hand, the `SCOPES` variable specifies the kind of access required by your application. The `offline_access` option ensures that a `refresh_token` is retrieved alongside the `access_token` while exchanging the authorization code for an access token. As you will see in latter parts of this article, the `refresh_token` eliminates the need for unneccessary repetition of the authorization process.
+
+> **Note:** For the <AUTH0_DOMAIN> and <CLIENT_ID> placeholders, replace them with the **Domain** and **Client ID** fields found in the **Settings** tab of your Auth0 application.
+
+#### Create a code verifier
+
+A code verifier is a cryptographically random key used to generate a code challenge. To create a code verifier, append the snippet below to the `/lib/utils/url_utils.dart` file:
+
+```dart
+///To create code verifier
+String _createVerifier() {
+  var generator = Random.secure();
+  var verifier = List.generate(32, (x) => generator.nextInt(256));
+  return base64UrlEncode(verifier).replaceAll("=", "");
+}
+```
+
+In the code above, a list is randomly generated and encoded as a Base64 string to get a code verifier.
+
+> **Note:** The `.replaceAll("=","")` operation performed on the Base64 string removes the unrequired padding which leads to an error when verifying the code challenge.
+
+#### Create a code challenge
+
+When creating a code challenge to be passed to the authorization endpoint, a code verifier is required. As you'll see in the [Exchange authorization code for access tokens](#exchange-authorization-code-for-access-tokens) section, the code verifier passed must be the same with the code verifier used in generating a code challenge. To create a code challenge, append the code snippet below to the `/lib/utils/url_utils.dart` file:
+
+```dart
+///To create code challenge
+String _createChallenge(String verifier) {
+  var enc = utf8.encode(verifier);
+  var challenge = sha256.convert(enc).bytes;
+  return base64UrlEncode(challenge).replaceAll("=", "");
+}
+```
+
+The code snippet above encodes the code verifier using UTF8 and converts the result to a SHA256 byte before encoding again, this time into a Base64 string to generate the code challenge.
+
+> **Note:** The SHA256 conversion method used in generating the digest byte determines what algorithm is used in verifying the code challenge in the [Exchange authorization code for access tokens](#exchange-authorization-code-for-access-tokens) section.
+
+#### Construct the authorization URL.
+
+To wrap things up on setting up the authorization, add the code snippet below to the `/lib/utils/url_utils.dart` file:
+
+```dart
+///To create authorization URL
+String getAuthorizationUrl() {
+  codeVerifier = _createVerifier();
+  codeChallenge = _createChallenge(codeVerifier);
+  String authorizationUrl =
+      "https://$DOMAIN/authorize?scope=$SCOPES&audience=$AUDIENCE&response_type=code&client_id=$CLIENT_ID&code_challenge=$codeChallenge&code_challenge_method=S256&redirect_uri=$REDIRECT_URI";
+  return authorizationUrl;
+}
+```
+
+The `getAuthorizationUrl()` function initializes the `codeVerifier` and `codeChallenge` variables. It then uses them alongside previously initialized variables such as `DOMAIN` and `SCOPES` to build the authorization URL.
 
 <!-- SECTION C HERE -->
+### Get the user's authorization
+
+As highlighted in the [What You'll Build](#what-you'll-build) section, the application built throughout this article implements social login with Google and GitHub, in addition to database login. 
+
+However, Google has a bit of history with embedded browsers - you simply cannot make OAuth authorization requests to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint leaves mobile developers wth two major alternatives - using AppAuth or Chrome Custom Tabs. With AppAuth yet to have a solid Flutter implementation, the latter provides a suitable approach to making requests.
+
+> **Note:** Although beyond the scope of this article, in using ChromeCustomTabs, you are advised to provide some form of fallback mechanism as ChromeCustomTabs is largely dependent on the user's installation of Chrome browser.
+
+#### Launch the authorization URL within your app
+
+To launch the authorization URL, start by creating a `launchURL()` function that takes in a URL and opens the URL using ChromeCustomTabs. To do this, add the following code to your `/lib/utils/auth_utils.dart` file:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+
+/// To launch the authorization URL using ChromeCustomTabs
+void launchURL(BuildContext context, {String url}) async {
+  try {
+    await launch(
+      url,
+      option: new CustomTabsOption(
+        toolbarColor: Theme.of(context).primaryColor,
+        enableDefaultShare: true,
+        enableUrlBarHiding: true,
+        showPageTitle: true,
+        animation: new CustomTabsAnimation.slideIn(),
+        extraCustomTabs: <String>[
+          'org.mozilla.firefox',
+          'com.microsoft.emmx',
+        ],
+      ),
+    );
+  } catch (e) {
+    // An exception is thrown if browser app is not installed on Android device.
+    debugPrint(e.toString());
+  }
+}
+```
+
+To use the `launchURL()` function, replace the code in the `onPressed()` function of the login button in `/lib/screens/login.dart` with the code below and add necessary imports:
+
+```dart
+launchURL(context, url: getAuthorizationUrl());
+```
+
+The snippet above launches the constructed authorization URL from `/lib/utils/url_utils.dart` using ChromeCustomTabs.
+
+#### Retrieve the authorization code
+
+In this section, you will setup your app for deep-linking from an authorization URL, listen to the received link via a stream, and parse the received link to useful data. You will also learn how to use ReBLOC architecture to achieve the aforementioned processes.
+
+##### Architect your login screen
+
+In using ReBLOC, **actions** represent operations that you want to perform, **states** represent possible appearances of your app's screen, **blocs** contain logic code, and a **store** serves as the repository for the states and operations of an application.
+
+Firstly, define your data models by adding the code snippet below to the `lib/rebloc/models.dart` file:
+
+```dart
+/// Authentication object model.
+class AuthModel {
+  final bool isAuthenticated;
+  final String authCode;
+
+  const AuthModel({this.isAuthenticated, this.authCode});
+}
+
+enum ScreenType {
+  loggedOut,
+  loggedIn,
+}
+
+/// User object model
+class User {
+  final String pictureUrl;
+  final String name;
+  final String nickname;
+
+  const User({this.pictureUrl, this.name, this.nickname});
+}
+```
+
+After defining your models, define all actions performable in the app by adding the code below to the `/lib/rebloc/actions.dart` file:
+
+```dart
+import 'package:rebloc/rebloc.dart';
+import '../models.dart';
+
+// MAIN ACTIONS
+/// To initialize app and check if user
+/// was previously logged in
+class OnInitAction extends Action {}
+
+// AUTH ACTIONS
+/// To get the URL received during deeplinking
+class GetReceivedURLAction extends Action {}
+
+/// To log user in with [authCode]
+class LoginAction extends Action {
+  final String authCode;
+  final bool isAuthenticated;
+
+  const LoginAction({this.authCode, this.isAuthenticated});
+}
+
+class LogoutAction extends Action {}
+
+/// To perform silent login without authorization
+/// after initial login
+class SilentLoginAction extends Action {
+  final String refreshToken;
+
+  const SilentLoginAction({this.refreshToken});
+}
+
+// PROFILE ACTIONS
+///  To display user details
+class DisplayDetailsAction extends Action {
+  final User user;
+
+  const DisplayDetailsAction({this.user});
+}
+
+/// To get access tokens during initial login
+class GetTokensFromAuthAction extends Action {
+  final String authCode;
+
+  const GetTokensFromAuthAction({this.authCode});
+}
+
+/// To get access token during subsequent logins
+class GetAccessFromRefreshTokenAction extends Action {
+  final String refreshToken;
+
+  const GetAccessFromRefreshTokenAction({this.refreshToken});
+}
+```
+
+After specifying your app actions, define the state of your login screen by adding the code snippet below to `/lib/rebloc/state/auth_state.dart`:
+
+```dart
+import '../models.dart';
+
+class AuthState {
+  final AuthModel authModel;
+
+  const AuthState({this.authModel});
+
+  AuthState.initial()
+      : authModel = AuthModel(
+          isAuthenticated: false,
+          authCode: "",
+        );
+
+  AuthState copyWith({AuthModel authModel}) {
+    return AuthState(
+      authModel: authModel ?? this.authModel,
+    );
+  }
+
+  @override
+  String toString() {
+    return "AuthState_$authModel";
+  }
+}
+```
+
+Then, create the application's whole state which holds all other states in the application by adding the snippet below to your `/lib/rebloc/state/app_state.dart` file:
+
+```dart
+import '../state/auth_state.dart';
+
+class AppState {
+  final AuthState authState;
+
+  const AppState({
+    this.authState,
+  });
+
+  AppState.initialState() : authState = AuthState.initial();
+
+  AppState copyWith({AuthState authState}) {
+    return AppState(
+      authState: authState ?? this.authState,
+    );
+  }
+
+  @override
+  String toString() => "AppState_$authState";
+}
+```
+
+Later in the article, the `AppState` class will be modified to hold newly added states.
+
+In ReBLOC, making the states and blocs accessible to all parts of the app is achieved by passing the store down the widget tree using a `StoreProvider` widget.
+
+Before creating your store, create a class `LoginBloc` in the file `/lib/rebloc/bloc/auth_bloc.dart` by extending the `SimpleBloc` class provided by the `rebloc` package, and override the `middleware()` and `reducer()` functions as seen in the snippet below:
+
+```dart
+import 'dart:async';
+
+import '../state/app_state.dart';
+import 'package:rebloc/rebloc.dart';
+
+class AuthBloc extends SimpleBloc<AppState> {
+  @override
+  FutureOr<Action> middleware(
+    DispatchFunction dispatch,
+    AppState state,
+    Action action,
+  ) async {
+    return super.middleware(dispatch, state, action);
+  }
+
+  @override
+  AppState reducer(AppState state, Action action) {
+    return state;
+  }
+}
+```
+
+Middlewares in ReBLOC are the logical operations performed after an action has been triggered, while reducers are [pure functions](https://medium.com/javascript-scene/master-the-javascript-interview-what-is-a-pure-function-d1c076bec976) that respond to actions that are intended to change the application's appearance.
+
+Finally, create a store by adding the code below to the `/lib/rebloc/store.dart` file:
+
+```dart
+import './bloc/auth_bloc.dart';
+import './state/app_state.dart';
+import 'package:rebloc/rebloc.dart';
+
+final appStore = Store<AppState>(
+  initialState: AppState.initialState(),
+  blocs: [
+    AuthBloc(),
+  ],
+);
+```
+
+To pass the store down the widget tree, wrap the `MyApp` widget in the `main()` function of the `/lib/main.dart` file with a `StoreProvider` widget as seen in the code below, and add the necessary imports:
+
+```dart
+void main() {
+  runApp(StoreProvider<AppState>(
+    store: appStore,
+    child: MyApp(),
+  ));
+}
+```
+
+##### Set up your app for deeplinking
+
+Deeplinking in Flutter requires having to do some work on the native Android and iOS platforms. 
+
+On the Android end, add an intent filter within the `<activity>` tag of your `/android/app/src/main/AndroidManifest.xml` as seen in the code below:
+
+```xml
+<manifest ...>
+  <!-- ... other tags -->
+  <application ...>
+    <activity ...>
+    <!-- ... other tags -->
+    <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data
+            android:host="logincallback"
+            android:pathPattern=".*"
+            android:scheme="myapp" />    
+    </intent-filter>
+    </activity>
+  </application>
+</manifest>
+```
+
+<!-- Then, add the following .... on the iOS end. (not tested yet. Leave empty for now) -->
+
+In the above code snippets, a combination of the host and scheme seperated by a colon will produce the callback URL previously defined. While this doesn't have to be the case, the callback URL must at least start with the said combination to work as expected.
+
+#### Listen to the received URL
+
+To listen to the URL received during deeplinking, modify the `middleware()` and `reducer()` functions in the `/lib/rebloc/bloc/auth_bloc.dart` to setup a listening stream and update the app state respectively, as seen in the code snippet below:
+
+```dart
+@override
+FutureOr<Action> middleware(
+  DispatchFunction dispatch,
+  AppState state,
+  Action action,
+) async {
+  if (action is GetReceivedURLAction) {
+    StreamSubscription _sub;
+    String receivedLink;
+
+    try {
+      receivedLink = await getInitialLink();
+      _sub = getLinksStream().listen(
+        (String link) {
+          receivedLink = link;
+
+          if (receivedLink.startsWith("myapp://logincallback")) {
+            AuthModel authDetails = parseUrlToValue(receivedLink);
+            dispatch(LoginAction(
+                authCode: authDetails.authCode,
+                isAuthenticated: authDetails.isAuthenticated));
+          }
+        },
+        onError: (err) {
+          receivedLink = err;
+        },
+        onDone: () {
+          _sub.cancel();
+        },
+      );
+    } catch (err) {}
+  }
+
+  return super.middleware(dispatch, state, action);
+}
+
+@override
+AppState reducer(AppState state, Action action) {
+    final _authState = state.authState;
+    if (action is LoginAction) {
+        return state.copyWith(
+            authState: _authState.copyWith(
+                authModel: AuthModel(
+                    authCode: action.authCode,
+                    isAuthenticated: action.isAuthenticated),
+            ),
+        );
+    }
+
+    return state;
+}
+```
+
+The code above sets up a subscription that listens to the `getLinksStream()` stream from the `uni_links` package. When the link changes after authorization (as expected), the method checks if the `receivedLink` parameter starts with your specified callback URL (`myapp://logincallback` in this case). It then parses the received link to check for whether an error or a code was returned by calling the `parseUrlToValue()` function on the link before triggering the `LoginAction`. Upon triggering the action, the application state is updated in the `reducer()` function.
+
+Create the `parseUrlToValue()` function by appending the code below to your `/lib/rebloc/bloc/auth_bloc.dart` file, and add the necessary imports:
+
+```dart
+AuthModel parseUrlToValue(String receivedURL) {
+  String value;
+  bool isAuthenticated = false;
+
+  /// checks if url contains the 'state' word. Logins with database
+  /// connection don't return 'state' as part of the callback
+  if (!receivedURL.contains("state")) { 
+    if (receivedURL.contains("code")) {
+        //assigns the auth code as the value
+      value = receivedURL.substring(receivedURL.lastIndexOf("?code=") + 6);
+      isAuthenticated = true;
+    } else if (receivedURL.contains("error")) {
+        //assigns the error message as the value
+      value = receivedURL.substring(receivedURL.lastIndexOf("?error=") + 7);
+    }
+  } else {
+    if (receivedURL.contains("code")) {
+        //assigns the auth code as the value
+      value = receivedURL.substring(
+          receivedURL.lastIndexOf("?code=") + 6, receivedURL.indexOf("&state"));
+      isAuthenticated = true;
+    } else if (receivedURL.contains("error")) {
+        //assigns the error message as the value
+      value = receivedURL.substring(receivedURL.lastIndexOf("?error=") + 7);
+    }
+  }
+  return AuthModel(isAuthenticated: isAuthenticated, authCode: value);
+}
+```
+
+The last step in retrieving the user's authorization is to dispatch/trigger the action to start listening to the stream immediately the authorization URL is launched. To do this, wrap the scaffold in `/lib/screens/login.dart` with a `DispatchSubscriber` widget, and modify the `onPressed()` function of the login button as shown in the code below:
+
+```dart
+@override
+Widget build(BuildContext context) {
+  return DispatchSubscriber<AppState>(
+    builder: (context, dispatch) {
+      return Scaffold(
+        appBar: AppBar(title: Text("Welcome")),
+        body: Container(
+          //widget tree
+            RaisedButton(
+              onPressed: () {
+                launchURL(
+                  context,
+                  url: getAuthorizationUrl(),
+                );
+                dispatch(GetReceivedURLAction());
+              },
+              child: Text("Click to Login"),
+            ),
+        //widget tree
+        ),
+      );
+    },
+  );
+}
+```
+
+A `DispatchSubscriber` widget in ReBLOC is used when you want to dispatch an action without the need for a view model. For instances that require an action dispatcher and a view model, the `ViewModelSubscriber` widget is used instead.
+
+In the `onPressed()` function in the code above, the `dispatch()` function triggers the `GetReceivedURLAction` which in turn starts the subscription stream to detect new URLs deeplinked into the application.
+
+> **Note:** If you're interested in seeing the values returned at any point within your app, you can log the values with print statements.
 
 <!-- SECTION D HERE -->
+### Access APIs after authorization
+
+In this section, you will learn how to use the user' authorization code to get an access token which is subsequently used to fetch the user' profile, all by leveraging the ReBLOC pattern.
+
+##### Architect your profile screen
+
+Firstly, start by defining your profile state which accounts for values with possibility of changing in the profile screen. To do this, add the code snippet below to the `/lib/rebloc/state/profile_state.dart` file:
+
+```dart 
+import '../models.dart';
+
+class ProfileState {
+  final User user;
+
+  const ProfileState({
+    this.user,
+  });
+
+  ProfileState.initialState()
+      : user = User(name: "", nickname: "", pictureUrl: "");
+
+  ProfileState copyWith({User user}) {
+    return ProfileState(
+      user: user ?? this.user,
+    );
+  }
+
+  @override
+  String toString() {
+    return "ProfileState_$user";
+  }
+}
+```
+
+Then, add the profile state to the application state by modifying the `/lib/rebloc/state/app_state.dart` file as seen in the code below:
+
+```dart 
+import '../models.dart';
+
+class AppState {
+  final AuthState authState;
+  final ProfileState profileState;
+
+  const AppState({this.authState, this.profileState});
+
+  AppState.initialState()
+      : authState = AuthState.initial(),
+        profileState = ProfileState.initialState();
+
+  AppState copyWith({AuthState authState, ProfileState profileState}) {
+    return AppState(
+      authState: authState ?? this.authState,
+      profileState: profileState ?? this.profileState,
+    );
+  }
+
+  @override
+  String toString() => "AppState_$authState$profileState";
+}
+```
+
+After appending changes to the state classes, create a `ProfileBloc` class in `/lib/rebloc/bloc/profile_bloc.dart` by extending the `SimpleBloc` class as seen in the [Architect your login screen](#architect-your-login-screen) section. Then add the `ProfileBloc()` object to the list of blocs in `/lib/rebloc/store.dart`. 
+
+Finally, modify the `build()` method in your `/lib/screens/profile.dart` file in a bid to replace the initial dummy values with actual implementations as seen in the code below, and add necessary imports:
+
+```dart
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text("User Profile"),
+    ),
+    body: Center(
+      child: FirstBuildDispatcher<AppState>(
+        action: isAuthCode == true
+            ? GetTokensFromAuthAction(authCode: code)
+            : GetAccessFromRefreshTokenAction(refreshToken: code),
+        child: ViewModelSubscriber<AppState, ProfileState>(
+          converter: (state) => state.profileState,
+          builder: (context, dispatch, viewModel) {
+            if (viewModel.user.name == "") {
+              return CircularProgressIndicator();
+            }
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: 150,
+                  height: 150,
+                  decoration: new BoxDecoration(
+                    border: Border.all(color: Colors.blue, width: 4.0),
+                    shape: BoxShape.circle,
+                    image: new DecorationImage(
+                      fit: BoxFit.fill,
+                      image: new NetworkImage(
+                        viewModel.user.pictureUrl,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 24.0),
+                Text(
+                  'Name: ${viewModel.user.name}',
+                  style:
+                      TextStyle(fontWeight: FontWeight.w600, fontSize: 18.0),
+                ),
+                SizedBox(height: 24.0),
+                Text(
+                  'Nickname: ${viewModel.user.nickname}',
+                  style:
+                      TextStyle(fontWeight: FontWeight.w600, fontSize: 18.0),
+                ),
+                SizedBox(height: 48.0),
+                RaisedButton(
+                  onPressed: () {},
+                  child: Text("Click to Logout"),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    ),
+  );
+}
+```
+
+In the code above, on initial build of the profile screen, the application checks if the code received as a paramter to the profile screen is an authorization code or a refresh token, and dispatches necessary actions based on the check. This is done using a `FirstBuildDispatcher` widget from the `rebloc` package. Also in the `build()` method, the application checks if user details have been retrieved. If retrieved, the details will be accessed from the view model and displayed, otherwise a loading indicator is rendered.
+
+#### Exchange authorization code for access tokens
+
+As seen in the diagram in the [OAuth 2.0 Flow and Mobile Applications](#oauth-2.0-flow-and-mobile-applications) section, when securing apps with Auth0 using the Authorization Code Grant Flow with PKCE, a request is made to get the access token after the user authorizes your application.
+
+As seen in the [documentations](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce#4-exchange-the-authorization-code-for-an-access-token), the request is a simple POST request that takes in `grant_type`, `client_id`, `code_verifier`, `code`, and `redirect_uri` parameters, then returns the response containing the `access_token` and `refresh_token` parameters.
+
+To make this request, append the code snippet below to the `/lib/rebloc/bloc/profile_bloc.dart` file, and add necessary imports:
+
+```dart
+/// To get the access token and refresh token using authorization code
+Future<String> getAccessFromAuthCode(String authCode) async {
+  String accessToken = "";
+  String refreshToken = "";
+  var url = "https://$DOMAIN/oauth/token";
+  final response = await http.post(url, body: {
+    "grant_type": "authorization_code",
+    "client_id": CLIENT_ID,
+    "code_verifier": codeVerifier,
+    "code": authCode,
+    "redirect_uri": REDIRECT_URI,
+  });
+  if (response.statusCode == 200) {
+    Map jsonMap = json.decode(response.body);
+    accessToken = jsonMap['access_token'];
+    refreshToken = jsonMap['refresh_token'];
+    await storeRefreshToken(refreshToken: refreshToken); //persist the refresh token
+  } else {
+    throw Exception('Failed to get access token');
+  }
+  return accessToken;
+}
+```
+
+The function above makes a POST request to the token endpoint, gets the access token and refresh token, and persists the refresh token for subsequent logins using the `storeRefreshTokens()` function.
+
+To create the `storeRefreshTokens()` function, add the following code to your `/lib/utils/persistence.dart` file:
+
+```dart
+import 'dart:async';
+
+import 'package:meta/meta.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+Future<Null> storeRefreshToken({@required String refreshToken}) async {
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  await sharedPreferences.setString('refresh_token', refreshToken);
+}
+```
+
+Then, import `/lib/utils/persistence.dart` in `/lib/rebloc/bloc/profile_bloc.dart`.
+
+> **Note:** In building applications for production, it is generally considered unsafe to plainly persist sensitive values such as access or refresh tokens with shared preferences. A minimal security step is to at least obfuscate the token with an algorithm before persisting.
+
+#### Fetch user profile with access token
+
+After getting the access token, it can be used to make API calls. To get the user details using the access token, append the code below to `/lib/rebloc/bloc/profile_bloc.dart`:
+
+```dart
+/// To get the user details from userinfo API of identity provider
+Future<User> getUserDetails(String accessToken) async {
+  User user;
+  var url = "https://$DOMAIN/userinfo";
+  final response = await http.get(
+    url,
+    headers: {"authorization": "Bearer $accessToken"},
+  );
+  if (response.statusCode == 200) {
+    Map jsonMap = json.decode(response.body);
+    var name = jsonMap['name'];
+    var pictureUrl = jsonMap['picture'];
+    var nickname = jsonMap['nickname'];
+    user = User(
+      name: name,
+      pictureUrl: pictureUrl,
+      nickname: nickname,
+    );
+  } else {
+    throw Exception('Failed to get user details');
+  }
+  return user;
+}
+```
+
+The `getUserDetails()` function above takes in an `accessToken` parameter and passes it as part of the authorization header when calling the `/userinfo` endpoint. It then constructs a `User` object from the retrieved response.
+
+To call the `getUserDetails()` and `getAccessFromAuthCode()` actions, modify the `middleware()` and `reducer()` functions in the `/lib/rebloc/bloc/profile_bloc.dart` file as seen in the code below, and add necessary imports:
+
+```dart
+@override
+FutureOr<Action> middleware(
+    DispatchFunction dispatch,
+    AppState state,
+    Action action,
+) async {
+    Function showUserDetails = (accessToken) async {
+      await getUserDetails(accessToken).then((user) {
+        dispatch(DisplayDetailsAction(user: user));
+      });
+    };
+
+    if (action is GetTokensFromAuthAction) {
+      await getAccessFromAuthCode(action.authCode).then(showUserDetails);
+    }
+    return super.middleware(dispatch, state, action);
+}
+
+@override
+AppState reducer(AppState state, Action action) {
+    final _profileState = state.profileState;
+    if (action is DisplayDetailsAction) {
+      return state.copyWith(
+          profileState: _profileState.copyWith(user: action.user));
+    }
+    return state;
+}
+```
+
+The `middleware()` function in the code above retrieves the access token using the authorization code whenever `GetTokensFromAuthAction` is dispatched. It then sends the access token to a `showUserDetails()` function which gets the user' details and displays the retrieved details by dispatching the `DisplayDetailsAction` action. Upon triggering the `DisplayDetailsAction`, the application state is updated with the user' details in the `reducer()` function.
+
+To ease the process of wiring the login and profile screens together, create `MainBloc` and `MainState` classes. The function of the `MainBloc` class is to perform initialzation actions such as checking if the user was previously logged in (as you'll see in the [Using refresh tokens for subsequent access](#using-refresh-tokens-for-subsequent-access) section). On the other hand, the function of the `MainState` class is to render the profile or login screen based on whether or not the user is logged in.
+
+To create a `MainBloc` class, add the code snippet below to the `/lib/rebloc/bloc/main_bloc.dart` file:
+
+```dart
+import '../models.dart';
+
+class MainState {
+  final ScreenType screenType;
+  final String refreshToken;
+  const MainState({this.screenType, this.refreshToken});
+
+  MainState.initialState()
+      : screenType = ScreenType.loggedOut,
+        refreshToken = "";
+
+  MainState copyWith({
+    ScreenType newScreenType,
+    String refreshToken,
+  }) {
+    return MainState(
+      screenType: newScreenType,
+      refreshToken: refreshToken,
+    );
+  }
+
+  @override
+  String toString() => "MainState_$screenType";
+}
+```
+
+The code above creates the `MainState` class with two parameters - a `ScreenType` object that defines whether the user is logged in or not, and a refreshToken for instances where the user was previously logged in.
+
+To create a `MainBloc`, add the code snippet below to the `/lib/rebloc/bloc/main_bloc.dart` file:
+
+```dart
+import 'dart:async';
+
+import '../actions.dart';
+import '../models.dart';
+import '../state/app_state.dart';
+import 'package:rebloc/rebloc.dart';
+
+class MainBloc extends SimpleBloc<AppState> {
+  @override
+  FutureOr<Action> middleware(
+    DispatchFunction dispatcher,
+    AppState state,
+    Action action,
+  ) async {
+    return super.middleware(dispatcher, state, action);
+  }
+
+  @override
+  AppState reducer(AppState state, Action action) {
+    final _mainState = state.mainState;
+    if (action is OnInitAction) {
+      return state.copyWith(
+        mainState: _mainState.copyWith(newScreenType: ScreenType.loggedOut),
+      );
+    }
+    return state;
+  }
+}
+```
+
+In the `reducer()` function in the code above, the main state is updated to reflect that the user is initially logged out such that a login prompt is displayed to the user.
+
+Add the `MainBloc` and `MainState` to the list of blocs and app states in `/lib/rebloc/store.dart` and `/lib/rebloc/states/app_state.dart` respectively.
+
+Finally, wire the existing blocs and states together by modifying the `/lib/main.dart` file to be as shown in the code below.
+
+```dart
+// main()
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      // other attributes
+      home: MyHomePage(),
+    );
+  }
+}
+
+class MyHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FirstBuildDispatcher<AppState>(
+      action: OnInitAction(),
+      child: ViewModelSubscriber<AppState, AppState>(
+        converter: (state) => state,
+        builder: (context, dispatcher, viewModel) {
+          bool isAuthenticated = viewModel.authState.authModel.isAuthenticated;
+          String code = viewModel.authState.authModel.authCode;
+          if (isAuthenticated) {
+            return Profile(
+              code: code,
+              isAuthCode: true,
+            );
+          } else if (isAuthenticated == false) {
+            return Login(
+              loginError: code,
+            );
+          }
+          return Login();
+        },
+      ),
+    );
+  }
+}
+```
+
+The code above replaces `Login` with `MyHomePage` as the initial page of the application. The `MyHomePage` class triggers an `OnInitAction` using the `FirstBuildDispatcher` widget, it then checks if the user is authenticated. If authenticated, it returns the profile by passing the authorization code as a parameter to enable retrieval of access tokens from the profile screen. If not authenticated, it implies that the user failed to authorize the application, and as a result, the login screen is re-rendered with the login error sent as a parameter to be displayed. Otherwise, it just renders the login screen.
+
+#### Using refresh tokens for subsequent access
+
+For most modern day applications, it is widely considered a bad UX practice to make users have to login anew everytime they open an application. A refresh token allows you to emulate the practice of preserving user' login until the user decides to voluntarily logout in the application being developed in this article. The refresh token which is persisted using shared preferences as seen in the [Exchange authorization code for access tokens](#exchange-authorization-code-for-access-tokens) section can be subsequently retrieved and used in getting a new access token which is in turn used in making API calls.
+
+To use refresh tokens to retrieve access tokens, make the following modifications to the files below:
+
+Append the code below to `/lib/rebloc/bloc/profile_bloc.dart` to make a request to the `/oauth/token` endpoint with a `refresh_token` parameter sent:
+
+```dart
+//To get access token from refresh token
+Future<String> getAccessFromRefreshTokens(String refreshToken) async {
+  String accessCode = "";
+  var url = "https://$DOMAIN/oauth/token";
+  final response = await http.post(url, body: {
+    "grant_type": "refresh_token",
+    "client_id": CLIENT_ID,
+    "refresh_token": refreshToken,
+  });
+  
+  if (response.statusCode == 200) {
+    Map jsonMap = json.decode(response.body);
+    accessCode = jsonMap['access_token'];
+  } else {
+    throw Exception('Failed to get access token');
+  }
+  return accessCode;
+}
+```
+
+Still in the `/lib/rebloc/bloc/profile_bloc.dart` file, modify the `middleware()` function to be as shown in the code snippet below:
+
+```dart
+FutureOr<Action> middleware(
+    DispatchFunction dispatch,
+    AppState state,
+    Action action,
+) async {
+    // showUserDetails() function
+
+    if (action is GetTokensFromAuthAction) {
+      await getAccessFromAuthCode(action.authCode).then(showUserDetails);
+    } else if (action is GetAccessFromRefreshTokenAction) {
+      await getAccessFromRefreshTokens(action.refreshToken)
+          .then(showUserDetails);
+    }
+
+    return super.middleware(dispatch, state, action);
+}
+```
+
+The modification ensures that the `getAccessFromRefreshTokens()` function is called when trying to get the access token using a refresh token instead of an authorization code.
+
+Then, update the `middleware()` and `reducer()` functions in your `/lib/rebloc/bloc/main_bloc.dart` file to account for instances where the user has been previously logged in, as seen in the code below:
+
+```dart
+class MainBloc extends SimpleBloc<AppState> {
+  @override
+  FutureOr<Action> middleware(
+    DispatchFunction dispatcher,
+    AppState state,
+    Action action,
+  ) async {
+    if (action is OnInitAction) {
+      await getRefreshToken().then((refreshToken) {
+        if (refreshToken != null && refreshToken.isNotEmpty) {
+          dispatcher(SilentLoginAction(refreshToken: refreshToken));
+        }
+      });
+    }
+    return super.middleware(dispatcher, state, action);
+  }
+
+  @override
+  AppState reducer(AppState state, Action action) {
+    final _mainState = state.mainState;
+    if (action is OnInitAction) {
+      return state.copyWith(
+        mainState: _mainState.copyWith(newScreenType: ScreenType.loggedOut),
+      );
+    }
+    if (action is SilentLoginAction) {
+      return state.copyWith(
+        mainState: _mainState.copyWith(
+            newScreenType: ScreenType.loggedIn,
+            refreshToken: action.refreshToken),
+      );
+    }
+    return state;
+  }
+}
+```
+
+In the code above, when the `OnInitAction` is dispatched, the presence of a refresh token is checked for in the middleware. If a refresh token is found, the `SilentLoginAction` is dispatched to update the status of the application screen as `ScreenType.loggedIn`, thus eliminating the need for a login prompt. Otherwise, the login screen is rendered.
+
+To create the `getRefreshToken()` function, append the following code to your `/lib/utils/persistence.dart` file:
+
+```dart
+Future<String> getRefreshToken() async {
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  String refreshToken = sharedPreferences.getString('refresh_token');
+  return refreshToken;
+}
+```
+
+Then, import `/lib/utils/persistence.dart` in `/lib/rebloc/bloc/main_bloc.dart`.
+
+Finally, modify the `MyHomePage` class in the `/lib/main.dart` to reflect the code below so as to take previously logged in users into consideration when determining whether to render the login screen or the profile screen:
+
+```dart
+class MyHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FirstBuildDispatcher<AppState>(
+      action: OnInitAction(),
+      child: ViewModelSubscriber<AppState, AppState>(
+        converter: (state) => state,
+        builder: (context, dispatcher, viewModel) {
+          if (viewModel.mainState.screenType == ScreenType.loggedIn) {
+              String refreshToken = viewModel.mainState.refreshToken;
+              return Profile(
+                code: refreshToken,
+                isAuthCode: false, 
+              );
+            } else {
+              bool isAuthenticated =
+                  viewModel.authState.authModel.isAuthenticated;
+              String code = viewModel.authState.authModel.authCode;
+              if (isAuthenticated) {
+                return Profile(
+                  code: code,
+                  isAuthCode: true,
+                );
+              } else if (isAuthenticated == false) {
+                return Login(
+                  loginError: code,
+                );
+              }
+            }
+            return Login();
+        },
+      ),
+    );
+  }
+}
+```
+
+The code above dispatches an `OnInitAction` which has been updated to check for the existence of a refresh token. If a refresh token exists, it returns the profile screen by sending the refresh token as the code parameter. It also assigns a `false` value to the `isAuthCode` parameter, signifying that the login screen should treat the received code as a refresh token, and not as an authorization code.
 
 <!-- SECTION E HERE --> 
+### Handle logouts
+
+In this section, you will learn how to log users out of your application - both out of the Auth0 layer and your client application layer.
+
+#### Handle Auth0-layer logouts
+
+Logging users out of your Auth0 application emulates a number of processes from login operation, from launching a logout URL to redirecting users to a logout callback URL. 
+
+As is the case with login, add a logout callback URL to the **Allowed Logout URLs** field in the [**Advanced** tab of your **Tenant** settings](https://manage.auth0.com/#/tenant/advanced).
+
+After setting a logout callback URL in your Auth0 application, modify the `/android/app/src/main/AndroidManifest.xml` and <!--For iOS, `/plist`--> files to allow deeplinking of the logout callback URL into your application.
+
+To do this on the Android end, add a new `<data>` tag within the `<intent-filter>` tag of your `/android/app/src/main/AndroidManifest.xml` file as seen in the code below:
+
+```xml
+<manifest ...>
+  <!-- ... other tags -->
+  <application ...> 
+    <activity ...>
+    <!-- ... other tags -->
+    <intent-filter android:autoVerify="true">
+        <!-- other tags -->
+        <!-- login callback url data tag -->
+        <data
+            android:host="logoutcallback"
+            android:pathPattern=".*"
+            android:scheme="myapp" /> 
+    </intent-filter>
+    </activity>
+  </application>
+</manifest>
+```
+
+<!-- Then, add the following .... on the iOS end. (not tested yet. Leave empty for now) -->
+
+To launch the logout URL, modify the `onPressed()` function of the logout button in `/lib/screens/profile.dart` as seen in the code below:
+
+```dart
+onPressed: () {
+    launchURL(
+        context,
+        url: "https://$DOMAIN/v2/logout?returnTo=myapp%3A%2F%2Flogoutcallback",
+    );
+}
+```
+
+The code above launches the logout URL with a `returnTo` parameter which expects your logout callback URL in an [encoded form](https://www.urlencoder.org/). Although logged out of Auth0, the profile screen is rerendered. In the next section, [Handling application-layer logouts](), you will learn how to fix this.
+
+#### Handling application-layer logouts
+
+Logging users out of the application layer involves deleting the persisted refresh token.
+
+To do this, start by appending the `deleteRefreshToken()` function below to `/lib/utils/persistence.dart`:
+
+```dart
+Future<Null> deleteRefreshToken() async {
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  await sharedPreferences.remove('refresh_token');
+}
+```
+
+Then, append the code snippet below in the `onPressed()` function of the logout button in `/lib/screens/profile.dart`:
+
+```dart
+dispatch(GetReceivedURLAction());
+```
+
+After modifying the `middleware()` function in `/lib/rebloc/bloc/auth_bloc.dart` to account for instances where the deeplink received in the app is the logout callback URL and dispatch an appropriate action as seen in the code below:
+
+```dart
+@override
+FutureOr<Action> middleware(
+DispatchFunction dispatch, 
+AppState state,
+Action action,
+) async {
+    if (action is GetReceivedURLAction) {
+        StreamSubscription _sub;
+        String receivedLink;
+
+        try {
+        receivedLink = await getInitialLink();
+        _sub = getLinksStream().listen(
+            (String link) {
+                receivedLink = link;
+                if (receivedLink.startsWith("myapp://logincallback")) {
+                    //parse and dispatch login
+                } else if (receivedLink.startsWith("myapp://logoutcallback")) {
+                    dispatch(LogoutAction());
+                }
+            },
+            // onError() function
+            // onDone() function
+
+        );
+        } on PlatformException {}
+    }
+
+    if (action is LogoutAction) {
+        await deleteRefreshToken();
+    }
+
+    return super.middleware(dispatch, state, action);
+}
+```
+
+Still in the `/lib/rebloc/bloc/auth_bloc.dart` file, add the code below to the `reducer()` function to complete the logout process:
+
+```dart
+if (action is LogoutAction) {
+    return AppState.initialState();
+}
+```
+
+The code above resets the application to its initial state - with the user logged out, refresh token absent, and a login prompt rendered to the user.
+
+After that, you're done securing your Flutter application with Auth0! You can now run your app using the `flutter run` command.
 
 <!-- SECTION F (CONCLUSION) HERE -->
+## Conclusion and Recommendations
+
+In this post, you learned how to secure a Flutter application with Auth0 using the authorization code grant flow with PKCE, and the basics of state management with ReBLOC.
+
+Althought Dart's default HTTP client library was used in making network requests throughout this article, the [Dio package](https://pub.dartlang.org/packages/dio) is a robust alternative, providing you with features such as interceptors and ability to handle request timeouts.
+
+Finally, while its usage is limited to fetching user details in the course of this article, the access token should be kept alive throughout the lifecycle of large applications where it's needed to make frequent API calls.
+
+I do hope that you enjoyed this tutorial. Happy hacking!

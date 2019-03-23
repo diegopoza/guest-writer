@@ -281,7 +281,7 @@ In the code above, a list is randomly generated and encoded as a Base64 string t
 
 #### Create a code challenge
 
-When creating a code challenge to be passed to the authorization endpoint, a code verifier is required. As you'll see in the [Exchange authorization code for access tokens](#exchange-authorization-code-for-access-tokens) section, the code verifier passed must be the same with the code verifier used in generating a code challenge. To create a code challenge, append the code snippet below to the `/lib/utils/url_utils.dart` file:
+When creating a code challenge to be passed to the authorization endpoint, a code verifier is required. As you'll see in the `getAccessFromRefreshTokens()` function in the [**Create a profile screen**](#create-a-profile-screen) section, the code verifier passed must be the same with the code verifier used in generating a code challenge. To create a code challenge, append the code snippet below to the `/lib/utils/url_utils.dart` file:
 
 ```dart
 ///To create code challenge
@@ -294,7 +294,7 @@ String _createChallenge(String verifier) {
 
 The code snippet above encodes the code verifier using UTF8 and converts the result to a SHA256 byte before encoding again, this time into a Base64 string to generate the code challenge.
 
-> **Note:** The SHA256 conversion method used in generating the digest byte determines what algorithm is used in verifying the code challenge in the [Exchange authorization code for access tokens](#exchange-authorization-code-for-access-tokens) section.
+> **Note:** The SHA256 conversion method used in generating the digest byte determines what algorithm is used in verifying the code challenge in the `getAccessFromRefreshTokens()` function in the [**Create a profile screen**](#create-a-profile-screen) section.
 
 #### Construct the authorization URL.
 
@@ -315,7 +315,7 @@ The `getAuthorizationUrl()` function initializes the `codeVerifier` and `codeCha
 
 ### Diving deeper: User Interfaces and Operations
 
-As seen in the [What You'll Build](#what-youll-build) section, the application contains a login screen and a profile screen, with the launched authorization URL being the linkage between both screens.
+As seen in the [**What You'll Build**](#what-youll-build) section, the application contains a login screen and a profile screen, with the launched authorization URL being the linkage between both screens.
 
 #### Create a login screen
 
@@ -407,7 +407,7 @@ void getReceivedURL() async {
 }
 ```
 
-The code above checks if the incoming link contains the login callback URL defined in the [Creating an Auth0 project](creating-an-auth0-project) section. It then subsequently parses the URL using the `parseUrlToValue()` function from `/lib/utils/auth_utils.dart` to determine whether to render a login error or route the user to the profile page.
+The code above checks if the incoming link contains the login callback URL defined in the [**Creating an Auth0 project**](#creating-an-auth0-project) section. It then subsequently parses the URL using the `parseUrlToValue()` function from `/lib/utils/auth_utils.dart` to determine whether to render a login error or route the user to the profile page.
 
 Albeit `getReceivedURL()` doesn't throw any error, deeplinking into a Flutter app still requires making some modifications on the native Android and iOS platforms which are unaccounted for by the `uni_links` package. 
 
@@ -676,7 +676,7 @@ Then, run the app using the `flutter run` command.
 
 Logging users out of your application involve 2 layers (Auth0 layer and application layer) and emulates a number of processes from the login operation, from launching a logout URL to redirecting users to a logout callback URL. 
 
-As is the case with login, add a logout callback URL to the **Allowed Logout URLs** field in the [**Advanced** tab of your **Tenant** settings](https://manage.auth0.com/#/tenant/advanced). The logout callback URL should be the same as the combination derived from the second `<data>` tag within the `<intent-filter>` of your `/android/app/src/main/AndroidManifest.xml` file and the second `<array>` tag within the `<key>CFBundleURLTypes</key>` tag in the `ios/Runner/Info.plist` file as seen in the [Create a login screen](#create-a-login-screen) section.
+As is the case with login, add a logout callback URL to the **Allowed Logout URLs** field in the [**Advanced** tab of your **Tenant** settings](https://manage.auth0.com/#/tenant/advanced). The logout callback URL should be the same as the combination derived from the second `<data>` tag within the `<intent-filter>` of your `/android/app/src/main/AndroidManifest.xml` file and the second `<array>` tag within the `<key>CFBundleURLTypes</key>` tag in the `ios/Runner/Info.plist` file as seen in the [**Create a login screen**](#create-a-login-screen) section.
 
 After adding the logout callback URL to your Auth0 application, modify the `onPressed()` function of the logout button in the `ProfileState` class in `/lib/screens/profile.dart` to handle Auth0-layer logout by launching the logout url, and application-layer logout by calling `logoutAction()` method from `/operations/operations.dart`. Hence, leaving your `onPressed()` function as seen in the code snippet below:
 

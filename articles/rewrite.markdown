@@ -214,10 +214,20 @@ AuthModel parseUrlToValue(String receivedURL) {
 
 In the code snippet above, the `launchURL()` function takes in a URL and opens the URL using ChromeCustomTabs. The application built throughout this article implements social login with Google and GitHub, in addition to database login, all of which can be assessed through an authorization URL launched in the browser. However, Google has a bit of history with embedded browsers - you simply cannot make OAuth authorization requests to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint leaves mobile developers with two major alternatives - using AppAuth or Chrome Custom Tabs. With AppAuth yet to have a solid Flutter implementation, the latter provides a suitable approach to making requests.
 
-On the other hand, the `parseUrlToValue()` function accepts the URL deeplinked into the application and parses it to determine if the authorization was successful with an authorization code, or if an error was encountered. Below are examples of the URLs deeplinked after successful and failed authorizations respectively:
+On the other hand, the `parseUrlToValue()` function accepts the URL deeplinked into the application and parses it to determine if the authorization was successful with an authorization code, or if an error was encountered. To get better insights into how the `parseUrlToValue()` function is structured to work, below are sample formats of the URLs deeplinked after successful and failed authorizations respectively:
 
 ```text
-print()
+//failed authorization using social login
+LOGIN_CALLBACK_URL?error=access_denied&error_description=ERROR_DESCRIPTION&state=g6Fo2SBEcDY4ZmZIVW1VS2RkVDE5dHNVemk0WUVtbW5Zci1Id6N0aWTZIDBELTRLbEZRVDJ4dnpMQVdlMzY4N05XRklYWEM0RmV6o2NpZNkgMFZ4b0tZYUtxdE96SlNRMzVQdUs0dFFMdDU3cHpPblc
+
+//failed authorization using database login
+LOGIN_CALLBACK_URL?error=access_denied&error_description=ERROR_DESCRIPTION
+
+//successful authorization using social login
+LOGIN_CALLBACK_URL?code=AUTH_CODE&state=g6Fo2SBwMkVpeHpmemtQLUZuQlUzT1c3LV8xbExvTHY0OXBxS6N0aWTZIHQ4SkRTN1l0bkswRHRTN3RwVng1T1lnTXdlMzdVd1h3o2NpZNkgMFZ4b0tZYUtxdE96SlNRMzVQdUs0dFFMdDU3cHpPblc
+
+//successful authorization using database login
+LOGIN_CALLBACK_URL?code=AUTH_CODE
 ```
 
 > **Note:** Although beyond the scope of this article, in using ChromeCustomTabs, you are advised to provide some form of fallback mechanism as ChromeCustomTabs is largely dependent on the user's installation of Chrome browser.
@@ -458,7 +468,7 @@ On the iOS end, add an `<array>` tag within the `<key>CFBundleURLTypes</key>` ta
 ```
 
 
-In the above code snippets, a combination of the host and scheme seperated by a colon will produce the callback URL previously defined. While this doesn't have to be the case, the callback URL must at least start with the said combination to work as expected. 
+In the above code snippets, a combination of the host and scheme separated by a colon will produce the callback URL previously defined. While this doesn't have to be the case, the callback URL must at least start with the said combination to work as expected. 
 
 #### Create a profile screen
 
@@ -664,7 +674,7 @@ Then, run the app using the `flutter run` command.
 
 ### Handle logouts
 
-Logging users out of your application involves 2 layers (Auth0 layer and application layer) and emulates a number of processes from the login operation, from launching a logout URL to redirecting users to a logout callback URL. 
+Logging users out of your application involve 2 layers (Auth0 layer and application layer) and emulates a number of processes from the login operation, from launching a logout URL to redirecting users to a logout callback URL. 
 
 As is the case with login, add a logout callback URL to the **Allowed Logout URLs** field in the [**Advanced** tab of your **Tenant** settings](https://manage.auth0.com/#/tenant/advanced). The logout callback URL should be the same as the combination derived from the second `<data>` tag within the `<intent-filter>` of your `/android/app/src/main/AndroidManifest.xml` file and the second `<array>` tag within the `<key>CFBundleURLTypes</key>` tag in the `ios/Runner/Info.plist` file as seen in the [Create a login screen](#create-a-login-screen) section.
 
@@ -784,7 +794,7 @@ After that, you're done securing your Flutter application with Auth0! You can no
 
 In this post, you learned how to secure a Flutter application with Auth0 using the authorization code grant flow with PKCE.
 
-Although Dart's default HTTP client library was used in making network requests throughout this article, the [Dio package](https://pub.dartlang.org/packages/dio) is a robust alternative, providing you with features such as interceptors and ability to handle request timeouts.
+Although Dart's default HTTP client library was used in making network requests throughout this article, the [Dio package](https://pub.dartlang.org/packages/dio) is a robust alternative, providing you with features such as interceptors and the ability to handle request timeouts.
 
 Additionally, In building applications for production, it is generally considered unsafe to plainly persist sensitive values such as access or refresh tokens with shared preferences. A minimal security step is to at least obfuscate the token with an algorithm before persisting.
 

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Securing Flutter Apps with Auth0"
-description: "Learn how to secure Flutter apps with Auth0 while using the Authorization Code Grant Flow with PKCE"
+description: "Learn how to secure Flutter apps with Auth0 while using the Authorization Code Grant flow with PKCE"
 date: "2019-02-18 08:30"
 author:
   name: "Fabusuyi Ayodeji"
@@ -18,33 +18,33 @@ related:
 - 2017-11-15-an-example-of-all-possible-elements
 --- 
 
-**TL;DR:** [Flutter](https://flutter.io/) is Google's cross-platform SDK created to help developers build expressive and beautiful mobile applications. In this article, you will learn how to build and secure a Flutter application with Auth0 using the Authorization Code Grant Flow with PKCE. You can checkout the code developed throughout the article [in this GitHub repository](https://github.com/thedejifab/flutter_auth0).
+**TL;DR:** [Flutter](https://flutter.io/) is Google's cross-platform SDK created to help developers build expressive and beautiful mobile applications. In this article, you will learn how to build and secure a Flutter application with Auth0 using the Authorization Code Grant flow with PKCE. You can checkout the code developed throughout the article [in this GitHub repository](https://github.com/thedejifab/flutter_auth0).
 
 ## Prerequisites
 
 Before getting started with this article, you need a working knowledge of Flutter. If you need help getting started, you can follow the codelabs on the [Flutter website](https://flutter.io/docs/codelabs). 
 
-You also need to have the installations outlined below on your machine.
+You also need to have the installations outlined below on your machine:
 
 * [Flutter SDK](https://flutter.io/docs/get-started/install), version 1.0 or later. (This comes with a [Dart SDK](https://www.dartlang.org/install) installation)
 * A Development Environment, one of:
   * [Android Studio](https://developer.android.com/studio), version 3.0 or later, or
   * [IntelliJ IDEA](https://www.jetbrains.com/idea/download/), version 2017.1 or later, or
-  * Visual Studio Code.
+  * [Visual Studio Code](https://code.visualstudio.com/download).
   
-  with Dart and Flutter plugins installed.
+Irrespective of the choice of IDE used, to aid effective development through the provision of tools for editing and refactoring your Flutter application, you will need an installation of the Dart and Flutter plugins.
 
 ## OAuth 2.0 Flow and Mobile Applications
 
-OAuth 2.0 is an industry-standard protocol for authorization. It allows the delegation of user **authorization** (not authentication) responsibilities to other services. A typical example of OAuth 2.0 in action is seen when trying to sign up for a third-party app using Facebook. OAuth 2.0 helps the third-party app delegate user authorization tasks to Facebook without having to bear the weight of securing user credentials. 
+OAuth 2.0 is an industry-standard protocol for authorization. It allows users to give third-party applications access to their resources. A typical example of OAuth 2.0 in action is seen when a user tries to sign up for a third-party app using Facebook. OAuth 2.0 allows the user to give the third-party application access to resources such as their profile data being used on Facebook without needing to input such resources on the said application. 
  
-OAuth 2.0 provides [different flows](https://auth0.com/docs/api-auth/which-oauth-flow-to-use) for user authorization, with the [Authorization Code Grant Flow with PKCE](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce) being the recommended approach for securing mobile applications. A detailed illustration of how this is used in the application developed in the article is shown below:
+OAuth 2.0 provides [different flows](https://auth0.com/docs/api-auth/which-oauth-flow-to-use) for user authorization, with the [Authorization Code Grant flow with PKCE](https://auth0.com/docs/api-auth/tutorials/authorization-code-grant-pkce) being the recommended approach for securing mobile applications. A detailed illustration of how this is used in the application developed in the article is shown below:
 
 ![Create application screenshot](images/flow.png)
 
 ## What You'll Build
 
-Throughout this article, you'll implement an application that uses social login (with GitHub and Google) and database login. Upon logging in, the application will fetch and render the user' profile details as seen in the screenshots below.
+Throughout this article, you'll implement an application that allows users authentication through a social identity provider (e.g., Google, GitHub, or Facebook) or by providing a set of credentials (username and password). The application provides a login prompt, an authentication screen, and a profile screen which displays the details of the authenticated user, with an option to log out as seen in the following screenshots:
 
 <p><img src="images/prompt.png" width="300px" height="auto"/> <img src="images/login.png" width="300px" height="auto"/> <img src="images/profile.png" width="300px" height="auto"/></p>
 
@@ -52,28 +52,28 @@ Throughout this article, you'll implement an application that uses social login 
 
 In this section, you will set up the application to be used throughout the article. More specifically, you will:
 
-* Create an Auth0 application to represent your Flutter app,
-* Scaffold a new Flutter app, and
-* Install packages that the app is dependent on.
+* Create an Auth0 application to represent your Flutter app;
+* scaffold a new Flutter app;
+* and install packages that the app is dependent on.
 
 ### Creating an Auth0 project
 
-Auth0 is an Identity-as-a-Service (IDaaS) platform that provides enterprises with features such as [**Social Login**](https://auth0.com/learn/social-login/) and [**Passwordless Login**](https://auth0.com/passwordless) amongst many others, aimed at easing the process of online identity management.
+Auth0 is an Identity-as-a-Service (IDaaS) platform that provides enterprises with features such as [_Social Login_](https://auth0.com/learn/social-login/) and [_Passwordless Login_](https://auth0.com/passwordless) amongst many others, aimed at easing the process of online identity management.
 
 To integrate Auth0 into your Flutter app, you need an Auth0 account. If you have an existing account, you can use it. If you don't, [click here to create one](https://auth0.com/signup).
 
 After creating an Auth0 account, follow the steps below to set up an application:
 
-* Go to the [**Applications**](https://manage.auth0.com/#/applications) section of your dashboard
-* Click on the [**Create Application**](https://manage.auth0.com/#/applications/create) button.
+* Go to the [_Applications_](https://manage.auth0.com/#/applications) section of your dashboard
+* Click on the [_Create Application_](https://manage.auth0.com/#/applications/create) button.
 * Enter a name for your application (e.g "Flutter Application").
-* Finally, select **Native App** as the application type and click the **Create** button.
+* Finally, select _Native App_ as the application type and click the _Create_ button.
 
 ![Create application screenshot](images/auth0.png)
 
-With database login and Google social login enabled by default, click on the **Connection > Social** menu on your dashboard. Then, toggle on **GitHub** as one of the enabled social connections. In the displayed dialog prompt, use the default details and click the **SAVE** button to finish.
+With database login and Google social login enabled by default, click on the _Connection > Social_ menu on your dashboard, then, toggle on any other social identity provider (e.g GitHub). In the displayed dialog prompt, use the default details and click the _SAVE_ button to finish.
 
-Finally, navigate to the **Settings** tab of your application to set a callback URL in the **Allowed Callback URLs** field. This could be any value ranging from normal web URLs with an HTTP scheme (E.g `https://myapp.com`) to URIs with custom schemes (E.g `myapp://logincallback`). In my case, I used the latter and made it unique. If you don't know the purpose of the callback URL, don't worry, the article will explain this concept into details later.
+Finally, navigate to the _Settings_ tab of your application to set a callback URL in the _Allowed Callback URLs_ field. This could be any value ranging from normal web URLs with an HTTP scheme (E.g `https://my-flutter-app.com`) to URIs with custom schemes (E.g `my-flutter-app://login-callback`). If you don't know the purpose of the callback URL, don't worry, the article will explain this concept into details later.
 
 ### Scaffolding a Flutter project
 
@@ -83,13 +83,18 @@ To facilitate the process of creating a new Flutter project you are going to use
 flutter create flutter_app
 ```
 
-The CLI tool generates a template project within a couple of seconds to get you started. The tool requires an internet connection to download dependencies during project creation, except an `--offline` option is passed to the `create` command to defer the downloading of dependencies. After project generation, you can now open the project in your preferred IDE.
+The CLI tool generates a template project within a couple of seconds to get you started. After project generation, you can now open the project in your preferred IDE.
 
 ### Installing dependencies
 
-As you will see in the course of the article, the project requires five main dependencies - [`http`](https://pub.dartlang.org/packages/http) for performing network requests, [`crypto`](https://pub.dartlang.org/packages/crypto) for generating cryptographically secure codes used in the authorization process, [`flutter_custom_tabs`](https://pub.dartlang.org/packages/flutter_custom_tabs) for launching URLs, [`shared_preferences`](https://pub.dartlang.org/packages/shared_preferences) for persistence, and [`uni_links`](https://pub.dartlang.org/packages/uni_links) which affords the ability to deep-link from web URLs into a Flutter application.
+As you will see in the course of the article, the project requires five main dependencies:
+* [`http`](https://pub.dartlang.org/packages/http): a library that helps in performing network requests.
+* [`crypto`](https://pub.dartlang.org/packages/crypto): a library for generating cryptographically secure codes used in the authorization process.
+* [`flutter_custom_tabs`](https://pub.dartlang.org/packages/flutter_custom_tabs): a library for launching URLs.
+* [`shared_preferences`](https://pub.dartlang.org/packages/shared_preferences): a local persistence library.
+* [`uni_links`](https://pub.dartlang.org/packages/uni_links): a library which affords you the ability to deep-link from web URLs into your Flutter application.
 
-With the project open in your IDE, navigate to your `/pubspec.yaml` file to add the dependencies by modifying the `dependencies` section as seen below:
+With the project open in your IDE, navigate to your `/pubspec.yaml` file to add the dependencies by replacing the `dependencies` section with the snippet below:
 
 ```yaml
 dependencies:
@@ -102,20 +107,24 @@ dependencies:
   shared_preferences: ^0.4.3
 ```
 
-Then, run `flutter packages get` command in your project's root directory with a stable internet connection to download the dependencies.
+Then, run `flutter packages get` command in your project's root directory to download the dependencies.
 
 ## Flutter and Auth0 in Practice
 
-In this section, you will learn how to authorize users, fetch user details, and log users out with Auth0 using the Authorization Code Grant Flow with PKCE. 
+In this section, you will learn how to authorize users, fetch user details, and log users out with Auth0 using the Authorization Code Grant flow with PKCE. 
 
-Before getting started, create the `/utils`, `/screens`, and `/operations` folder in your project's `/lib` directory.
+Before getting started, create the `/utils`, `/screens`, and `/operations` folder by running the command below in your project's `/lib` directory:
+
+`mkdir utils screens operations`
 
 ### Define models and utilities
 
 Firstly, start by defining data models and utilities for your application. To define data models, create a file `models.dart` in the `/lib/operations/` folder and add the code below:
 
 ```dart
-/// Authentication object model.
+/*
+Authentication model which defines whether the user has granted the application access or not, with a corresponding code if it is authorized.
+*/
 class AuthModel {
   final bool isAuthenticated;
   final String authCode;
@@ -123,7 +132,7 @@ class AuthModel {
   const AuthModel({this.isAuthenticated, this.authCode});
 }
 
-/// User object model
+// User object model
 class User {
   final String pictureUrl;
   final String name;
@@ -166,7 +175,7 @@ import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 
 import '../operations/models.dart';
 
-/// To launch the authorization URL using ChromeCustomTabs
+// To launch the authorization URL using ChromeCustomTabs
 void launchURL(BuildContext context, {String url}) async {
   try {
     await launch(
@@ -236,7 +245,7 @@ LOGIN_CALLBACK_URL?code=AUTH_CODE
 
 User authorization with Auth0 involves redirecting the user to an authorization URL which provides an authorization dialog. After authorization, the user is redirected to a callback URL which contains details about the user' authorization. 
 
-An authorization URL requires parameters including `redirect_uri`, `client_id` and a few other parameters as seen [here](https://auth0.com/docs/protocols/oauth2#authorization-endpoint). Specifically, when using the Authorization Code Grant Flow with PKCE, the `code_challenge` and `code_challenge_method` parameters are required.
+An authorization URL requires parameters including `redirect_uri`, `client_id` and a few other parameters as seen [here](https://auth0.com/docs/protocols/oauth2#authorization-endpoint). Specifically, when using the Authorization Code Grant flow with PKCE, the `code_challenge` and `code_challenge_method` parameters are required.
 
 To get started with this, create a file `url_utils.dart` in the `/lib/utils` directory and add the code below: 
 
@@ -250,24 +259,24 @@ const String DOMAIN = "<AUTH0_DOMAIN>";
 const String CLIENT_ID = "<CLIENT_ID>";
 const String AUDIENCE = "https://$DOMAIN/api/v2/";
 const String SCOPES = "openid profile email offline_access";
-const String REDIRECT_URI = "myapp://logincallback";
+const String REDIRECT_URI = "my-flutter-app://login-callback";
 
 String codeVerifier;
 String codeChallenge;
 ```
 
-The code snippet above declares parameters necessary for the creation of an authorization URL. The `REDIRECT_URI` variable specifies where the user will be redirected to after authorization. The value of `REDIRECT_URI` must match with one of the **Allowed Callback URLs** defined in the **Settings** tab of your Auth0 application.
+The code snippet above declares parameters necessary for the creation of an authorization URL. The `REDIRECT_URI` variable specifies where the user will be redirected to after authorization. The value of `REDIRECT_URI` must match with one of the _Allowed Callback URLs_ defined in the _Settings_ tab of your Auth0 application.
 
 On the other hand, the `SCOPES` variable specifies the kind of access required by your application. The `offline_access` option ensures that a `refresh_token` is retrieved alongside the `access_token` while exchanging the authorization code for an access token. As you will see in the latter parts of this article, the `refresh_token` eliminates the need for unnecessary repetition of the authorization process.
 
-> **Note:** For the <AUTH0_DOMAIN> and <CLIENT_ID> placeholders, replace them with the **Domain** and **Client ID** fields found in the **Settings** tab of your Auth0 application.
+> **Note:** For the <AUTH0_DOMAIN> and <CLIENT_ID> placeholders, replace them with the _Domain_ and _Client ID_ fields found in the _Settings_ tab of your Auth0 application.
 
 #### Create a code verifier
 
 A code verifier is a cryptographically random key used to generate a code challenge. To create a code verifier, append the snippet below to the `/lib/utils/url_utils.dart` file:
 
 ```dart
-///To create code verifier
+//To create code verifier
 String _createVerifier() {
   var generator = Random.secure();
   var verifier = List.generate(32, (x) => generator.nextInt(256));
@@ -284,7 +293,7 @@ In the code above, a list is randomly generated and encoded as a Base64 string t
 When creating a code challenge to be passed to the authorization endpoint, a code verifier is required. As you'll see in the `getAccessFromRefreshTokens()` function in the [**Create a profile screen**](#create-a-profile-screen) section, the code verifier passed must be the same with the code verifier used in generating a code challenge. To create a code challenge, append the code snippet below to the `/lib/utils/url_utils.dart` file:
 
 ```dart
-///To create code challenge
+//To create code challenge
 String _createChallenge(String verifier) {
   var enc = utf8.encode(verifier);
   var challenge = sha256.convert(enc).bytes;
@@ -301,7 +310,7 @@ The code snippet above encodes the code verifier using UTF8 and converts the res
 To wrap things up on setting up the authorization, add the code snippet below to the `/lib/utils/url_utils.dart` file:
 
 ```dart
-///To create authorization URL
+//To create authorization URL
 String getAuthorizationUrl() {
   codeVerifier = _createVerifier();
   codeChallenge = _createChallenge(codeVerifier);
@@ -383,7 +392,7 @@ void getReceivedURL() async {
         (String link) {
           receivedLink = link;
 
-          if (receivedLink.startsWith("myapp://logincallback")) {
+          if (receivedLink.startsWith("my-flutter-app://login-callback")) {
             AuthModel authDetails = parseUrlToValue(receivedLink);
             if (!authDetails.isAuthenticated) {
               setState(() {
@@ -425,14 +434,14 @@ On the Android end, add an intent filter within the `<activity>` tag of your `/a
         <category android:name="android.intent.category.BROWSABLE" />
         <!-- For login callback URL -->
         <data
-            android:host="logincallback"
+            android:host="login-callback"
             android:pathPattern=".*"
-            android:scheme="myapp" />  
+            android:scheme="my-flutter-app" />  
         <!-- For logout callback URL -->
         <data
-            android:host="logoutcallback"
+            android:host="logout-callback"
             android:pathPattern=".*"
-            android:scheme="myapp" />   
+            android:scheme="my-flutter-app" />   
     </intent-filter>
     </activity>
   </application>
@@ -483,7 +492,7 @@ import '../operations/models.dart';
 import '../utils/persistence.dart';
 import '../utils/url_utils.dart';
 
-/// To get the access token and refresh token using authorization code
+// To get the access token and refresh token using authorization code
 Future<String> getNewTokens(String authCode) async {
   String accessToken = "";
   String refreshToken = "";
@@ -525,7 +534,7 @@ Future<String> getAccessFromRefreshTokens(String refreshToken) async {
   return accessCode;
 }
 
-/// To get the user details from userinfo API of identity provider
+// To get the user details from userinfo API of identity provider
 Future<User> getUserDetails(String accessToken) async {
   User user;
   var url = "https://$DOMAIN/userinfo";
@@ -676,7 +685,7 @@ Then, run the app using the `flutter run` command.
 
 Logging users out of your application involve 2 layers (Auth0 layer and application layer) and emulates a number of processes from the login operation, from launching a logout URL to redirecting users to a logout callback URL. 
 
-As is the case with login, add a logout callback URL to the **Allowed Logout URLs** field in the [**Advanced** tab of your **Tenant** settings](https://manage.auth0.com/#/tenant/advanced). The logout callback URL should be the same as the combination derived from the second `<data>` tag within the `<intent-filter>` of your `/android/app/src/main/AndroidManifest.xml` file and the second `<array>` tag within the `<key>CFBundleURLTypes</key>` tag in the `ios/Runner/Info.plist` file as seen in the [**Create a login screen**](#create-a-login-screen) section.
+As is the case with login, add a logout callback URL to the _Allowed Logout URLs_ field in the [_Advanced_ tab of your _Tenant_ settings](https://manage.auth0.com/#/tenant/advanced). The logout callback URL should be the same as the combination derived from the second `<data>` tag within the `<intent-filter>` of your `/android/app/src/main/AndroidManifest.xml` file and the second `<array>` tag within the `<key>CFBundleURLTypes</key>` tag in the `ios/Runner/Info.plist` file as seen in the [**Create a login screen**](#create-a-login-screen) section.
 
 After adding the logout callback URL to your Auth0 application, modify the `onPressed()` function of the logout button in the `ProfileState` class in `/lib/screens/profile.dart` to handle Auth0-layer logout by launching the logout url, and application-layer logout by calling `logoutAction()` method from `/operations/operations.dart`. Hence, leaving your `onPressed()` function as seen in the code snippet below:
 
@@ -685,7 +694,7 @@ onPressed: () {
     launchURL(
     context,
     url:
-        "https://$DOMAIN/v2/logout?returnTo=myapp%3A%2F%2Flogoutcallback",
+        "https://$DOMAIN/v2/logout?returnTo=my-flutter-app%3A%2F%2Flogout-callback",
     );
     logoutAction();
     getReceivedURL();
@@ -706,7 +715,7 @@ void getReceivedURL() async {
         (String link) {
           receivedLink = link;
 
-          if (receivedLink.startsWith("myapp://logoutcallback")) {
+          if (receivedLink.startsWith("my-flutter-app://logout-callback")) {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) {
               return Login();
             }));

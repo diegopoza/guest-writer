@@ -73,7 +73,7 @@ After creating an Auth0 account, follow the steps below to set up an application
 
 With database login and Google social login enabled by default, click on the _Connection > Social_ menu on your dashboard, then, toggle on any other social identity provider (e.g GitHub). In the displayed dialog prompt, use the default details and click the _SAVE_ button to finish.
 
-Finally, navigate to the _Settings_ tab of your application to set a callback URL in the _Allowed Callback URLs_ field. This could be any value ranging from normal web URLs with an HTTP scheme (E.g `https://my-flutter-app.com`) to URIs with custom schemes (E.g `my-flutter-app://login-callback`). If you don't know the purpose of the callback URL, don't worry, the article will explain this concept into details later.
+Finally, navigate to the _Settings_ tab of your application to set a callback URL in the _Allowed Callback URLs_ field. This could be any value ranging from normal web URLs with a HTTP scheme (E.g `https://my-flutter-app.com`) to URIs with custom schemes (E.g `my-flutter-app://login-callback`) depending on your preference, but it must be a valid URI. If you don't know the purpose of the callback URL, don't worry, the article will explain this concept into details later.
 
 ### Scaffolding a Flutter project
 

@@ -12,8 +12,29 @@ related:
 - 2017-11-15-an-example-of-all-possible-elements
 ---
 
-**TL;DR:** Briefly describe what this article is about and what the reader will achieve/learn after reading it. Please,
-also provide the link to a GitHub repository that contains code related to this article.
+**TL;DR:** MobX is a scalable library developed to ease the process of state management in frontend applications. In this article, you will learn how to manage the state of your Flutter applications using MobX. You can find the sample project developed throughout this article in [this GitHub repository]().
+
+## Prerequisites
+
+Before getting started with this article, you need a working knowledge of Flutter. If you need help getting started, you can follow the codelabs on the [Flutter website](https://flutter.io/docs/codelabs). 
+
+You also need to have the installations outlined below on your machine:
+
+* [Flutter SDK](https://flutter.io/docs/get-started/install), version 1.0 or later. (This comes with a [Dart SDK](https://www.dartlang.org/install) installation)
+* A Development Environment, one of:
+  * [Android Studio](https://developer.android.com/studio), version 3.0 or later, or
+  * [IntelliJ IDEA](https://www.jetbrains.com/idea/download/), version 2017.1 or later, or
+  * [Visual Studio Code](https://code.visualstudio.com/download).
+  
+Irrespective of the choice of IDE used, to aid effective development through the provision of tools for editing and refactoring your Flutter application, you will need an installation of the Dart and Flutter plugins.
+
+
+## MobX Introduction
+
+According to [mobxjs.org](https://mobxjs.org), MobX is a battle tested library that makes state management simple and scalable by transparently applying functional reactive programming (TFRP). Developed primarily with React applications in mind, MobX has grown to support applications built with other JavaScript libraries, and in recent times, Flutter applications.  
+ 
+Unlike existing state management libraries in Flutter such as BLoC - which was built on X, and Redux - which was built on Y, MobX was built on the simple philosophy that anything that can be derived from the application state, should be derived. This implies that ...
+
 
 ## The Second Most Important Title
 

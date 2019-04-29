@@ -3,3 +3,5 @@ node_modules/
 .writer.json
 .DS_Store
 *.clear.txt
+articles/2019-03-17-title.markdown
+articles/2019-03-17-title.markdown

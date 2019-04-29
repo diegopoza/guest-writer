@@ -73,7 +73,7 @@ After creating an Auth0 account, follow the steps below to set up an application
 
 With database login and Google social login enabled by default, click on the _Connection > Social_ menu on your dashboard, then, toggle on any other social identity provider (e.g GitHub). In the displayed dialog prompt, use the default details and click the _SAVE_ button to finish.
 
-Finally, navigate to the _Settings_ tab of your application to set a callback URL in the _Allowed Callback URLs_ field. This could be any value ranging from normal web URLs with a HTTP scheme (E.g `https://my-flutter-app.com`) to URIs with custom schemes (E.g `my-flutter-app://login-callback`) depending on your preference, but it must be a valid URI. If you don't know the purpose of the callback URL, don't worry, the article will explain this concept into details later.
+Finally, navigate to the _Settings_ tab of your application to set a callback URL in the _Allowed Callback URLs_ field. A callback URL is where you want your users to be redirected after authorization (defined as *REDIRECT_URI* in the [#setup-an-authorization-url](Setup an authorization URL) section), and could be any value ranging from normal web URLs with a HTTP scheme (E.g `https://my-flutter-app.com`) to URIs with custom schemes (E.g `my-flutter-app://login-callback`) depending on your preference, but it must be a valid URI. If you don't know the purpose of the callback URL, don't worry, the article will explain this concept into details later.
 
 ### Scaffolding a Flutter project
 
@@ -115,16 +115,17 @@ In this section, you will learn how to authorize users, fetch user details, and 
 
 Before getting started, create the `/utils`, `/screens`, and `/operations` folder by running the command below in your project's `/lib` directory:
 
-`mkdir utils screens operations`
+```bash
+mkdir utils screens operations
+```
 
 ### Define models and utilities
 
 Firstly, start by defining data models and utilities for your application. To define data models, create a file `models.dart` in the `/lib/operations/` folder and add the code below:
 
 ```dart
-/*
-Authentication model which defines whether the user has granted the application access or not, with a corresponding code if it is authorized.
-*/
+/*Authentication model which defines whether the user has granted the application 
+access or not, with a corresponding code if it is authorized.*/
 class AuthModel {
   final bool isAuthenticated;
   final String authCode;
@@ -184,29 +185,22 @@ launchURL(String url) async {
 AuthModel parseUrlToValue(String receivedURL) {
   String value;
   bool isAuthenticated = false;
-  if (!receivedURL.contains("state")) {
-    if (receivedURL.contains("code")) {
-      value = receivedURL.substring(receivedURL.lastIndexOf("?code=") + 6);
-      isAuthenticated = true;
-    } else if (receivedURL.contains("error")) {
-      value = receivedURL.substring(receivedURL.lastIndexOf("?error=") + 7);
-    }
-  } else {
-    if (receivedURL.contains("code")) {
-      value = receivedURL.substring(
-          receivedURL.lastIndexOf("?code=") + 6, receivedURL.indexOf("&state"));
-      isAuthenticated = true;
-    } else if (receivedURL.contains("error")) {
-      value = receivedURL.substring(receivedURL.lastIndexOf("?error=") + 7);
-    }
-  }
+
+	Uri uri = Uri.parse(receivedURL);
+	if (uri.queryParameters.keys.contains('code')) {
+		value = uri.queryParameters['code'];
+		isAuthenticated = true
+	}else{
+		value = uri.queryParameters['error'];
+	}    
+  
   return AuthModel(isAuthenticated: isAuthenticated, authCode: value);
 }
 ```
 
-In the code snippet above, the `launchURL()` function takes in a URL and launches the URL on the user's default browser using the `url_launcher` package. Although using webview to launch the URL proves to be a UX-friendly approach, the application built throughout this article implements social login with Google and GitHub, in addition to database login, all of which can be assessed through an authorization URL launched in the browser. 
+In the code snippet above, the `launchURL()` function takes in a URL and launches the URL on the user's default browser using the `url_launcher` package. 
 
-However, Google has a bit of history with embedded browsers - you simply cannot make OAuth authorization requests to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint leaves mobile developers with two major alternatives - using AppAuth or an actual browser, and with AppAuth yet to have a solid Flutter implementation, the latter provides a suitable approach to making requests.
+The application built throughout this article implements social login with Google and GitHub, in addition to database login, all of which can be assessed through an authorization URL launched in the browser, and although embedded browsers prove to provide the most seamless way to do this, Google has a bit of history with them. OAuth authorization requests cannot be made to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint is as a result of the need to [curb man-in-the-middle](https://9to5google.com/2019/04/18/google-block-man-in-the-middle/) attacks that occur during authorization in embedded browsers, with developers being advised to switch to browser-based OAuth authentication, and it leaves mobile developers with two major alternatives - using AppAuth or an actual browser, and with AppAuth yet to have a solid Flutter implementation, the latter provides a suitable approach to making requests.
 
 On the other hand, the `parseUrlToValue()` function accepts the URL deeplinked into the application and parses it to determine if the authorization was successful with an authorization code, or if an error was encountered. To get better insights into how the `parseUrlToValue()` function is structured to work, below are sample formats of the URLs deeplinked after successful and failed authorizations respectively:
 
@@ -241,7 +235,7 @@ import 'package:crypto/crypto.dart';
 const String DOMAIN = "<AUTH0_DOMAIN>";
 const String CLIENT_ID = "<CLIENT_ID>";
 const String AUDIENCE = "https://$DOMAIN/api/v2/";
-const String SCOPES = "openid%20profile%20email%20offline_access";
+const String SCOPES = "openid profile email offline_access";
 const String REDIRECT_URI = "my-flutter-app://login-callback";
 
 String codeVerifier;
@@ -297,8 +291,14 @@ To wrap things up on setting up the authorization, add the code snippet below to
 String getAuthorizationUrl() {
   codeVerifier = _createVerifier();
   codeChallenge = _createChallenge(codeVerifier);
-  String authorizationUrl =
-      "https://$DOMAIN/authorize?scope=$SCOPES&audience=$AUDIENCE&response_type=code&client_id=$CLIENT_ID&code_challenge=$codeChallenge&code_challenge_method=S256&redirect_uri=$REDIRECT_URI";
+  String authorizationUrl = "https://$DOMAIN/authorize" +
+      "?scope=${Uri.encodeFull(SCOPES)}" +
+      "&audience=$AUDIENCE" +
+      "&response_type=code" +
+      "&client_id=$CLIENT_ID" +
+      "&code_challenge=$codeChallenge" +
+      "&code_challenge_method=S256" +
+      "&redirect_uri=$REDIRECT_URI";
   return authorizationUrl;
 }
 ```
@@ -366,7 +366,7 @@ class LoginState extends State<Login> {
 
 The code snippet above creates a simple screen with a login button. In the `onPressed()` function of the button, two operations are performed - a call is made to the `launchURL()` function from `/lib/utils/auth_utils.dart` to launch the URL returned by `getAuthorizationUrl()` from `/lib/utils/url_utils.dart` on the user's browser; and a `getReceivedURL()` function is called to leverage on the `uni_links` package in setting up a stream whose function is to listen to incoming URLs that will be deeplinked into the application.
 
-Now, define the `getReceivedURL()` function by adding the code snippet below to the `LoginState` class in `/lib/screens/login.dart`:
+Now, define the `getReceivedURL()` function by adding the code snippet below within the `LoginState` class in `/lib/screens/login.dart`:
 
 ```dart
 void getReceivedURL() async {
@@ -520,7 +520,7 @@ Future<String> getAccessFromRefreshTokens(String refreshToken) async {
     "client_id": CLIENT_ID,
     "refresh_token": refreshToken,
   });
-  print(response);
+  
   if (response.statusCode == 200) {
     Map jsonMap = json.decode(response.body);
     accessCode = jsonMap['access_token'];
@@ -538,7 +538,7 @@ Future<User> getUserDetails(String accessToken) async {
     url,
     headers: {"authorization": "Bearer $accessToken"},
   );
-  print(response);
+
   if (response.statusCode == 200) {
     Map jsonMap = json.decode(response.body);
     var name = jsonMap['name'];
@@ -637,21 +637,16 @@ class ProfileState extends State<Profile> {
 
   void initAction() async {
     if (widget.isAuthCode == true) {
-      await getNewTokens(widget.code).then((accessToken) {
-        getUserDetails(accessToken).then((receivedUser) {
-          setState(() {
-            user = receivedUser;
-          });
-        });
+      final accessToken = await getNewTokens(widget.code);
+      final receivedUser = await getUserDetails(accessToken);
+      setState(() {
+        user = receivedUser;
       });
     } else {
-      accessToken =
-          await getAccessFromRefreshTokens(widget.code).then((accessToken) {
-        getUserDetails(accessToken).then((receivedUser) {
-          setState(() {
-            user = receivedUser;
-          });
-        });
+      final accessToken = await getAccessFromRefreshTokens(widget.code);
+      final receivedUser = await getUserDetails(accessToken);
+      setState(() {
+        user = receivedUser;
       });
     }
   }
@@ -660,7 +655,13 @@ class ProfileState extends State<Profile> {
 
 In the code above, the `Profile` class accepts two parameters - a `code` parameter which is used in getting an access token, and an `isAuthCode` parameter which signifies whether `code` is a refresh token (for previously logged in users) or an authorization code (for newly logged users).  In the `initState()` method of the `ProfileState` class, a function `initAction()` is called to use the `code` parameter in getting the access token, and subsequently, use the access token to get the user details.
 
-At this point, your application is almost complete. To see the authentication and profile fetching operations in action, modify the `home` attribute in the `build()` method of  the `MyApp` class in `main.dart` from `MyHomePage()` to `Login()`, leaving the `build()` method as seen in the code below:
+At this point, your application is almost complete. To see the authentication and profile fetching operations in action, first import the login screen by adding the snippet below to the imports section of your `main.dart` file:
+
+```dart
+import './screens/login.dart';
+```
+
+Then, modify the `home` attribute in the `build()` method of the `MyApp` class in `main.dart` from `MyHomePage()` to `Login()`, leaving the `build()` method as seen in the code below:
 
 ```dart
 @override

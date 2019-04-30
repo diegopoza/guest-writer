@@ -182,6 +182,7 @@ launchURL(String url) async {
   }
 }
 
+
 AuthModel parseUrlToValue(String receivedURL) {
   String value;
   bool isAuthenticated = false;
@@ -189,7 +190,7 @@ AuthModel parseUrlToValue(String receivedURL) {
 	Uri uri = Uri.parse(receivedURL);
 	if (uri.queryParameters.keys.contains('code')) {
 		value = uri.queryParameters['code'];
-		isAuthenticated = true
+		isAuthenticated = true;
 	}else{
 		value = uri.queryParameters['error'];
 	}    
@@ -287,7 +288,7 @@ The code snippet above encodes the code verifier using UTF8 and converts the res
 To wrap things up on setting up the authorization, add the code snippet below to the `/lib/utils/url_utils.dart` file:
 
 ```dart
-//To create authorization URL
+///To create authorization URL
 String getAuthorizationUrl() {
   codeVerifier = _createVerifier();
   codeChallenge = _createChallenge(codeVerifier);
@@ -354,7 +355,7 @@ class LoginState extends State<Login> {
                       },
                       child: Text("Click to Login"),
                     ),
-                    loginError != null ? Text(loginError) : Text(""),
+                    Text(loginError??""),
                   ],
                 ),
         ),
@@ -370,39 +371,40 @@ Now, define the `getReceivedURL()` function by adding the code snippet below wit
 
 ```dart
 void getReceivedURL() async {
-    StreamSubscription _sub;
-    String receivedLink;
+  StreamSubscription _sub;
+  String receivedLink;
 
-    try {
-      _sub = getLinksStream().listen(
-        (String link) {
-          receivedLink = link;
+  try {
+    _sub = getLinksStream().listen(
+      (String link) {
+        receivedLink = link;
 
-          if (receivedLink.startsWith("my-flutter-app://login-callback")) {
-            AuthModel authDetails = parseUrlToValue(receivedLink);
-            if (!authDetails.isAuthenticated) {
-              setState(() {
-                loginError = authDetails.authCode;
-              });
-            } else {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                return Profile(
-                  isAuthCode: true,
-                  code: authDetails.authCode,
-                );
-              }));
-            }
+        if (receivedLink.startsWith(REDIRECT_URI)) {
+          AuthModel authDetails = parseUrlToValue(receivedLink);
+          if (!authDetails.isAuthenticated) {
+            setState(() {
+              isLaunched = false;
+              loginError = authDetails.authCode;
+            });
+          } else {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+              return Profile(
+                isAuthCode: true,
+                code: authDetails.authCode,
+              );
+            }));
           }
-        },
-        onDone: () {
-          _sub.cancel();
-        },
-      );
-    } catch (err) {}
+        }
+      },
+      onDone: () {
+        _sub.cancel();
+      },
+    );
+  } catch (err) {}
 }
 ```
 
-The code above checks if the incoming link contains the login callback URL defined in the [**Creating an Auth0 project**](#creating-an-auth0-project) section. It then subsequently parses the URL using the `parseUrlToValue()` function from `/lib/utils/auth_utils.dart` to determine whether to render a login error or route the user to the profile page.
+The code above checks if the incoming link contains the login callback URL defined as `REDIRECT_URI` in `/lib/utils/url_utils.dart`. It then subsequently parses the URL using the `parseUrlToValue()` function from `/lib/utils/auth_utils.dart` to determine whether to render a login error or route the user to the profile page.
 
 Albeit `getReceivedURL()` doesn't throw any error, deeplinking into a Flutter app still requires making some modifications on the native Android and iOS platforms which are unaccounted for by the `uni_links` package. 
 
@@ -488,7 +490,7 @@ import '../operations/models.dart';
 import '../utils/persistence.dart';
 import '../utils/url_utils.dart';
 
-// To get the access token and refresh token using authorization code
+/// To get the access token and refresh token using authorization code
 Future<String> getNewTokens(String authCode) async {
   String accessToken = "";
   String refreshToken = "";
@@ -520,7 +522,6 @@ Future<String> getAccessFromRefreshTokens(String refreshToken) async {
     "client_id": CLIENT_ID,
     "refresh_token": refreshToken,
   });
-  
   if (response.statusCode == 200) {
     Map jsonMap = json.decode(response.body);
     accessCode = jsonMap['access_token'];
@@ -530,7 +531,7 @@ Future<String> getAccessFromRefreshTokens(String refreshToken) async {
   return accessCode;
 }
 
-// To get the user details from userinfo API of identity provider
+/// To get the user details from userinfo API of identity provider
 Future<User> getUserDetails(String accessToken) async {
   User user;
   var url = "https://$DOMAIN/userinfo";
@@ -538,7 +539,6 @@ Future<User> getUserDetails(String accessToken) async {
     url,
     headers: {"authorization": "Bearer $accessToken"},
   );
-
   if (response.statusCode == 200) {
     Map jsonMap = json.decode(response.body);
     var name = jsonMap['name'];
@@ -569,18 +569,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:uni_links/uni_links.dart';
-import '../screens/login.dart';
 import '../operations/models.dart';
 import '../operations/operations.dart';
+import '../screens/profile.dart';
 import '../utils/auth_utils.dart';
-import '../utils/url_utils.dart' show DOMAIN;
+import '../utils/url_utils.dart';
 
 class Profile extends StatefulWidget {
   final String code;
   final bool isAuthCode;
 
-  const Profile({Key key, @required this.code, @required this.isAuthCode})
-      : super(key: key);
+  const Profile({
+    Key key,
+    @required this.code,
+    @required this.isAuthCode,
+  }) : super(key: key);
 
   @override
   ProfileState createState() {
@@ -625,8 +628,7 @@ class ProfileState extends State<Profile> {
                   Text('Nickname: ${user.nickname}'),
                   SizedBox(height: 48.0),
                   RaisedButton(
-                    onPressed: () {
-                    },
+                    onPressed: () {},
                     child: Text("Click to Logout"),
                   ),
                 ],
@@ -684,41 +686,47 @@ Logging users out of your application involve 2 layers (Auth0 layer and applicat
 
 As is the case with login, add a logout callback URL to the _Allowed Logout URLs_ field in the [_Advanced_ tab of your _Tenant_ settings](https://manage.auth0.com/#/tenant/advanced). The logout callback URL should be the same as the combination derived from the second `<data>` tag within the `<intent-filter>` of your `/android/app/src/main/AndroidManifest.xml` file and the second `<dict>` tag under the `<key>CFBundleURLTypes</key>` tag in `ios/Runner/Info.plist` as seen in the [**Create a login screen**](#create-a-login-screen) section.
 
-After adding the logout callback URL to your Auth0 application, modify the `onPressed()` function of the logout button in the `ProfileState` class in `/lib/screens/profile.dart` to handle Auth0-layer logout by launching the logout url, and application-layer logout by calling `logoutAction()` method from `/operations/operations.dart`. Hence, leaving your `onPressed()` function as seen in the code snippet below:
+After adding the logout callback URL to your Auth0 application, 
+create a static class variable within your `ProfileState` class to hold the value of the logout callback URL by adding the code snippet below within the class:
+
+```dart
+static const String LOGOUT_URL = 'my-flutter-app://logout-callback';
+```
+Then, modify the `onPressed()` function of the logout button in the `ProfileState` class in `/lib/screens/profile.dart` to handle Auth0-layer logout by launching the defined logout url, and application-layer logout by calling `logoutAction()` method from `/operations/operations.dart`. Hence, leaving your `onPressed()` function as seen in the code snippet below:
 
 ```dart
 onPressed: () {
-    launchURL("https://$DOMAIN/v2/logout?returnTo=my-flutter-app%3A%2F%2Flogout-callback");
-    logoutAction();
-    getReceivedURL();
-}
+  launchURL("https://$DOMAIN/v2/logout?returnTo=${Uri.encodeFull(LOGOUT_URL)}");
+  logoutAction();
+  getReceivedURL();
+},
 ```
 
-The code above launches the logout URL with a `returnTo` parameter which expects your logout callback URL in an [encoded form](https://www.urlencoder.org/). In a similar fashion to the login screen, it also makes a call to a `getReceivedURL()` function whose purpose is to set up a stream to listen to URLs deeplinked into the application - more specifically, in this case, to listen to the logout callback URL and perform UI operations signifying that the user is logged out.
+The code above launches the logout URL with a `returnTo` parameter which expects your logout callback URL in an encoded form. In a similar fashion to the login screen, it also makes a call to a `getReceivedURL()` function whose purpose is to set up a stream to listen to URLs deeplinked into the application - more specifically, in this case, to listen to the logout callback URL and perform UI operations signifying that the user is logged out.
 
-Still in the `/lib/screens/profile.dart` file, define the `getReceivedURL()` function in the `ProfileState` class by adding the code snippet below:
+Still in the `/lib/screens/profile.dart` file, define the `getReceivedURL()` function within the `ProfileState` class by adding the code snippet below:
 
 ```dart
 void getReceivedURL() async {
-    StreamSubscription _sub;
-    String receivedLink;
+  StreamSubscription _sub;
+  String receivedLink;
 
-    try {
-      _sub = getLinksStream().listen(
-        (String link) {
-          receivedLink = link;
+  try {
+    _sub = getLinksStream().listen(
+      (String link) {
+        receivedLink = link;
 
-          if (receivedLink.startsWith("my-flutter-app://logout-callback")) {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-              return Login();
-            }));
-          }
-        },
-        onDone: () {
-          _sub.cancel();
-        },
-      );
-    } catch (err) {}
+        if (receivedLink.startsWith(LOGOUT_URL)) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+            return Login();
+          }));
+        }
+      },
+      onDone: () {
+        _sub.cancel();
+      },
+    );
+  } catch (err) {}
 }
 ```
 
@@ -729,9 +737,9 @@ The process of checking if the user is already logged in involves checking if a 
 To do this, modify the `MyHomePage` class in `/main.dart` and set the `home` attribute back to `MyHomePage()`, leaving the `main.dart` file as seen in the code snippet below:
 
 ```dart
-import 'package:auth0/screens/login.dart';
-import 'package:auth0/screens/profile.dart';
-import 'package:auth0/utils/persistence.dart';
+import './screens/login.dart';
+import './screens/profile.dart';
+import './utils/persistence.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
@@ -752,7 +760,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   @override
   MyHomePageState createState() {
-    return new MyHomePageState();
+    return MyHomePageState();
   }
 }
 
@@ -777,13 +785,12 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   void initAction() async {
-    await getRefreshToken().then((receivedRefreshToken) {
-      if (receivedRefreshToken != null && receivedRefreshToken.isNotEmpty) {
-        setState(() {
-          refreshToken = receivedRefreshToken;
-        });
-      }
-    });
+    final receivedRefreshToken = await getRefreshToken();
+    if (receivedRefreshToken != null && receivedRefreshToken.isNotEmpty) {
+      setState(() {
+        refreshToken = receivedRefreshToken;
+      });
+    }
   }
 }
 ```

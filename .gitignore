@@ -3,3 +3,4 @@ node_modules/
 .writer.json
 .DS_Store
 *.clear.txt
+articles/final_draft.markdown

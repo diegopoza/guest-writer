@@ -73,11 +73,11 @@ After creating an Auth0 account, follow the steps below to set up an application
 
 With database login and Google social login enabled by default, click on the _Connection > Social_ menu on your dashboard, then, toggle on any other social identity provider (e.g GitHub). In the displayed dialog prompt, use the default details and click the _SAVE_ button to finish.
 
-Finally, navigate to the _Settings_ tab of your application to set a callback URL in the _Allowed Callback URLs_ field. A callback URL is where you want your users to be redirected after authorization (defined as *REDIRECT_URI* in the [#setup-an-authorization-url](Setup an authorization URL) section), and could be any value ranging from normal web URLs with a HTTP scheme (E.g `https://my-flutter-app.com`) to URIs with custom schemes (E.g `my-flutter-app://login-callback`) depending on your preference, but it must be a valid URI. If you don't know the purpose of the callback URL, don't worry, the article will explain this concept into details later.
+Finally, navigate to the _Settings_ tab of your application to set a callback URL in the _Allowed Callback URLs_ field. A callback URL is where you want your users to be redirected after authorization (defined as *REDIRECT_URI* in the [#setup-an-authorization-url](Setup an authorization URL) section), and could be any value ranging from normal web URLs with a HTTP scheme (E.g `https://my-flutter-app.com`) to URIs with custom schemes (E.g `my-flutter-app://login-callback`) depending on the context of implementation, but it must be a valid URI. If you don't know the purpose of the callback URL, don't worry, the article will explain this concept into details later.
 
 ### Scaffolding a Flutter project
 
-To facilitate the process of creating a new Flutter project you are going to use the Flutter CLI tool. To do this, open a terminal and navigate to your projects directory to run the following command:
+To facilitate the process of creating a new Flutter project you are going to use the Flutter CLI tool. To do this, open your terminal and navigate to your projects' directory to run the following command:
 
 ```bash
 flutter create flutter_app
@@ -90,7 +90,7 @@ The CLI tool generates a template project within a couple of seconds to get you 
 As you will see in the course of the article, the project requires five main dependencies:
 * [`http`](https://pub.dartlang.org/packages/http): a library that helps in performing network requests.
 * [`crypto`](https://pub.dartlang.org/packages/crypto): a library for generating cryptographically secure codes used in the authorization process.
-* [`url_launcher`](https://pub.dartlang.org/packages/url_launcer): a library for launching URLs.
+* [`flutter_custom_tabs`](https://pub.dartlang.org/packages/flutter_custom_tabs): a library for launching URLs within a Flutter application.
 * [`shared_preferences`](https://pub.dartlang.org/packages/shared_preferences): a local persistence library.
 * [`uni_links`](https://pub.dartlang.org/packages/uni_links): a library which affords you the ability to deep-link from web URLs into your Flutter application.
 
@@ -103,7 +103,7 @@ dependencies:
   crypto: ^2.0.6
   uni_links: ^0.1.4
   http: ^0.12.0+1
-  url_launcher: ^5.0.2
+  flutter_custom_tabs: ^0.4.0
   shared_preferences: ^0.4.3
 ```
 
@@ -171,49 +171,62 @@ Future<Null> deleteRefreshToken() async {
 Authenticating users involves a number of utilities ranging from launching an authorization URL which is constructed in [Setup an authorization URL](#setup-an-authorization-url), to parsing the response received after authorization. To define the authentication utilities, create a file `auth_utils.dart` in the `/lib/utils/` directory, and add the code snippet below:
 
 ```dart
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import '../operations/models.dart';
 
-launchURL(String url) async {
-  if (await canLaunch(url)) {
-    await launch(url);
-  } else {
-    throw 'Could not launch $url';
+void launchURL(BuildContext context, {String url}) async {
+  try {
+    await launch(
+      url,
+      option: new CustomTabsOption(
+        toolbarColor: Theme.of(context).primaryColor,
+        enableDefaultShare: true,
+        enableUrlBarHiding: true,
+        showPageTitle: true,
+        animation: new CustomTabsAnimation.slideIn(),
+        extraCustomTabs: <String>[
+          'org.mozilla.firefox',
+          'com.microsoft.emmx',
+        ],
+      ),
+    );
+  } catch (e) {
+    debugPrint(e.toString());
   }
 }
-
 
 AuthModel parseUrlToValue(String receivedURL) {
   String value;
   bool isAuthenticated = false;
 
-	Uri uri = Uri.parse(receivedURL);
-	if (uri.queryParameters.keys.contains('code')) {
-		value = uri.queryParameters['code'];
-		isAuthenticated = true;
-	}else{
-		value = uri.queryParameters['error'];
-	}    
-  
+  Uri uri = Uri.parse(receivedURL);
+  if (uri.queryParameters.keys.contains('code')) {
+    value = uri.queryParameters['code'];
+    isAuthenticated = true;
+  } else {
+    value = uri.queryParameters['error'];
+  }
+
   return AuthModel(isAuthenticated: isAuthenticated, authCode: value);
 }
 ```
 
-In the code snippet above, the `launchURL()` function takes in a URL and launches the URL on the user's default browser using the `url_launcher` package. 
+In the code snippet above, the `launchURL()` function takes in a URL and launches the URL within the application using the `flutter_custom_tabs` package. 
 
-The application built throughout this article implements social login with Google and GitHub, in addition to database login, all of which can be assessed through an authorization URL launched in the browser, and although embedded browsers prove to provide the most seamless way to do this, Google has a bit of history with them. OAuth authorization requests cannot be made to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint is as a result of the need to [curb man-in-the-middle](https://9to5google.com/2019/04/18/google-block-man-in-the-middle/) attacks that occur during authorization in embedded browsers, with developers being advised to switch to browser-based OAuth authentication, and it leaves mobile developers with two major alternatives - using AppAuth or an actual browser, and with AppAuth yet to have a solid Flutter implementation, the latter provides a suitable approach to making requests.
+The application built throughout this article implements social login with Google and GitHub, in addition to database login, all of which can be assessed through an authorization URL launched in the browser, and although embedded browsers prove to provide the most seamless way to do this, Google has a bit of history with them. OAuth authorization requests cannot be made to Google via an embedded browser [any longer](https://auth0.com/blog/google-blocks-oauth-requests-from-embedded-browsers/). This constraint is as a result of the need to [curb man-in-the-middle](https://9to5google.com/2019/04/18/google-block-man-in-the-middle/) attacks that occur during authorization in embedded browsers, with developers being advised to switch to browser-based OAuth authentication. Hence, leaving mobile developers with two major alternatives - using AppAuth or an actual browser, and with AppAuth yet to have a solid Flutter implementation, the `flutter_custom_tabs` package provides a suitable approach to perform authentication using an actual browser.
 
 On the other hand, the `parseUrlToValue()` function accepts the URL deeplinked into the application and parses it to determine if the authorization was successful with an authorization code, or if an error was encountered. To get better insights into how the `parseUrlToValue()` function is structured to work, below are sample formats of the URLs deeplinked after successful and failed authorizations respectively:
 
 ```text
 //failed authorization using social login
-LOGIN_CALLBACK_URL?error=access_denied&error_description=ERROR_DESCRIPTION&state=g6Fo2SBEcDY4ZmZIVW1VS2RkVDE5dHNVemk0WUVtbW5Zci1Id6N0aWTZIDBELTRLbEZRVDJ4dnpMQVdlMzY4N05XRklYWEM0RmV6o2NpZNkgMFZ4b0tZYUtxdE96SlNRMzVQdUs0dFFMdDU3cHpPblc
+LOGIN_CALLBACK_URL?error=access_denied&error_description=ERROR_DESCRIPTION&state=g6Fo2SBwMkZuQlUzT1c3LV8xbExvTHY0OXBxS6N0aWTZIHQ4SkRTN1l0bkswFZ4b0tZYUtxdE96SlNRMzVQdUs0dFFMdDU3cHpPblc
 
 //failed authorization using database login
 LOGIN_CALLBACK_URL?error=access_denied&error_description=ERROR_DESCRIPTION
 
 //successful authorization using social login
-LOGIN_CALLBACK_URL?code=AUTH_CODE&state=g6Fo2SBwMkVpeHpmemtQLUZuQlUzT1c3LV8xbExvTHY0OXBxS6N0aWTZIHQ4SkRTN1l0bkswRHRTN3RwVng1T1lnTXdlMzdVd1h3o2NpZNkgMFZ4b0tZYUtxdE96SlNRMzVQdUs0dFFMdDU3cHpPblc
+LOGIN_CALLBACK_URL?code=AUTH_CODE&state=g6Fo2SBwMkZuQlUzT1c3LV8xbExvTHY0OXBxS6N0aWTZIHQ4SkRTN1l0bkswFZ4b0tZYUtxdE96SlNRMzVQdUs0dFFMdDU3cHpPblc
 
 //successful authorization using database login
 LOGIN_CALLBACK_URL?code=AUTH_CODE
@@ -350,7 +363,7 @@ class LoginState extends State<Login> {
                         setState(() {
                          isLaunched = true; 
                         });
-                        launchURL(getAuthorizationUrl());
+                        launchURL(context, url: getAuthorizationUrl());
                         getReceivedURL();
                       },
                       child: Text("Click to Login"),
@@ -367,11 +380,11 @@ class LoginState extends State<Login> {
 
 The code snippet above creates a simple screen with a login button. In the `onPressed()` function of the button, two operations are performed - a call is made to the `launchURL()` function from `/lib/utils/auth_utils.dart` to launch the URL returned by `getAuthorizationUrl()` from `/lib/utils/url_utils.dart` on the user's browser; and a `getReceivedURL()` function is called to leverage on the `uni_links` package in setting up a stream whose function is to listen to incoming URLs that will be deeplinked into the application.
 
-Now, define the `getReceivedURL()` function by adding the code snippet below within the `LoginState` class in `/lib/screens/login.dart`:
+Now, declare a `StreamSubscription` to listen to incoming links and define the `getReceivedURL()` function by adding the code snippet below within the `LoginState` class in `/lib/screens/login.dart`:
 
 ```dart
+StreamSubscription _sub;
 void getReceivedURL() async {
-  StreamSubscription _sub;
   String receivedLink;
 
   try {
@@ -387,17 +400,17 @@ void getReceivedURL() async {
               loginError = authDetails.authCode;
             });
           } else {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+            Navigator.of(context)
+                .pushReplacement(MaterialPageRoute(builder: (context) {
               return Profile(
                 isAuthCode: true,
                 code: authDetails.authCode,
               );
-            }));
+            })).catchError((err) {});
+
+            isLaunched = null;
           }
         }
-      },
-      onDone: () {
-        _sub.cancel();
       },
     );
   } catch (err) {}
@@ -405,6 +418,16 @@ void getReceivedURL() async {
 ```
 
 The code above checks if the incoming link contains the login callback URL defined as `REDIRECT_URI` in `/lib/utils/url_utils.dart`. It then subsequently parses the URL using the `parseUrlToValue()` function from `/lib/utils/auth_utils.dart` to determine whether to render a login error or route the user to the profile page.
+
+Finally, override the `dispose()` method in the `LoginState` class to cancel the stream subscription when the user leaves the login page by adding the code snippet below within the class:
+
+```dart
+@override
+void dispose() {
+  _sub?.cancel();
+  super.dispose();
+}
+```
 
 Albeit `getReceivedURL()` doesn't throw any error, deeplinking into a Flutter app still requires making some modifications on the native Android and iOS platforms which are unaccounted for by the `uni_links` package. 
 
@@ -569,9 +592,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:uni_links/uni_links.dart';
+import '../screens/login.dart';
 import '../operations/models.dart';
 import '../operations/operations.dart';
-import '../screens/profile.dart';
 import '../utils/auth_utils.dart';
 import '../utils/url_utils.dart';
 
@@ -687,7 +710,7 @@ Logging users out of your application involve 2 layers (Auth0 layer and applicat
 As is the case with login, add a logout callback URL to the _Allowed Logout URLs_ field in the [_Advanced_ tab of your _Tenant_ settings](https://manage.auth0.com/#/tenant/advanced). The logout callback URL should be the same as the combination derived from the second `<data>` tag within the `<intent-filter>` of your `/android/app/src/main/AndroidManifest.xml` file and the second `<dict>` tag under the `<key>CFBundleURLTypes</key>` tag in `ios/Runner/Info.plist` as seen in the [**Create a login screen**](#create-a-login-screen) section.
 
 After adding the logout callback URL to your Auth0 application, 
-create a static class variable within your `ProfileState` class to hold the value of the logout callback URL by adding the code snippet below within the class:
+create a static variable within your `ProfileState` class to hold the value of the logout callback URL by adding the code snippet below within the class:
 
 ```dart
 static const String LOGOUT_URL = 'my-flutter-app://logout-callback';
@@ -696,7 +719,7 @@ Then, modify the `onPressed()` function of the logout button in the `ProfileStat
 
 ```dart
 onPressed: () {
-  launchURL("https://$DOMAIN/v2/logout?returnTo=${Uri.encodeFull(LOGOUT_URL)}");
+  launchURL(context, url:"https://$DOMAIN/v2/logout?returnTo=${Uri.encodeFull(LOGOUT_URL)}");
   logoutAction();
   getReceivedURL();
 },
@@ -704,29 +727,36 @@ onPressed: () {
 
 The code above launches the logout URL with a `returnTo` parameter which expects your logout callback URL in an encoded form. In a similar fashion to the login screen, it also makes a call to a `getReceivedURL()` function whose purpose is to set up a stream to listen to URLs deeplinked into the application - more specifically, in this case, to listen to the logout callback URL and perform UI operations signifying that the user is logged out.
 
-Still in the `/lib/screens/profile.dart` file, define the `getReceivedURL()` function within the `ProfileState` class by adding the code snippet below:
+Still in the `/lib/screens/profile.dart` file, declare a `StreamSubscription` variable and define the `getReceivedURL()` function within the `ProfileState` class by adding the code snippet below:
 
 ```dart
+StreamSubscription _sub;
 void getReceivedURL() async {
-  StreamSubscription _sub;
   String receivedLink;
 
   try {
     _sub = getLinksStream().listen(
       (String link) {
         receivedLink = link;
-
         if (receivedLink.startsWith(LOGOUT_URL)) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-            return Login();
-          }));
+          Navigator.of(context)
+                .pushReplacement(MaterialPageRoute(builder: (context) {
+              return Login();
+            }));
         }
-      },
-      onDone: () {
-        _sub.cancel();
       },
     );
   } catch (err) {}
+}
+```
+
+Finally, as is the case with the login screen, override the `dispose()` method in the `ProfileState` class to cancel the stream subscription when the user leaves the profile screen by adding the code snippet below within the class:
+
+```dart
+@override
+void dispose() {
+  _sub?.cancel();
+  super.dispose();
 }
 ```
 
